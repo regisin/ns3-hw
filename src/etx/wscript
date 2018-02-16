@@ -1,0 +1,32 @@
+## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+def build(bld):
+    module = bld.create_ns3_module('etx', ['internet'])
+    module.includes = '.'
+    module.source = [
+        'model/etx-header.cc',
+        'model/etx-state.cc',
+        'model/etx-routing-protocol.cc',
+        'helper/etx-helper.cc',
+        ]
+
+    module_test = bld.create_ns3_module_test_library('etx')
+    module_test.source = [
+        'test/etx-test-suite.cc'
+        ]
+
+    headers = bld(features='ns3header')
+    headers.module = 'etx'
+    headers.source = [
+        'model/etx-routing-protocol.h',
+        'model/etx-header.h',
+        'model/etx-state.h',
+        'model/etx-repositories.h',
+        'helper/etx-helper.h',
+        ]
+
+
+    if bld.env['ENABLE_EXAMPLES']:
+        bld.recurse('examples')
+
+    bld.ns3_python_bindings()

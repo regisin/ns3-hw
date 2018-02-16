@@ -1,0 +1,32 @@
+## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+def build(bld):
+    module = bld.create_ns3_module('split', ['internet'])
+    module.includes = '.'
+    module.source = [
+        'model/split-header.cc',
+        'model/split-state.cc',
+        'model/split-routing-protocol.cc',
+        'helper/split-helper.cc',
+        ]
+
+    module_test = bld.create_ns3_module_test_library('split')
+    module_test.source = [
+        'test/split-test-suite.cc'
+        ]
+
+    headers = bld(features='ns3header')
+    headers.module = 'split'
+    headers.source = [
+        'model/split-routing-protocol.h',
+        'model/split-header.h',
+        'model/split-state.h',
+        'model/split-repositories.h',
+        'helper/split-helper.h',
+        ]
+
+
+    if bld.env['ENABLE_EXAMPLES']:
+        bld.recurse('examples')
+
+    bld.ns3_python_bindings()
