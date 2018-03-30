@@ -250,11 +250,11 @@ FdNetDevice::StartDevice (void)
     {
       NS_LOG_DEBUG ("FdNetDevice::Start(): Failure, invalid file descriptor.");
       return;
-    }
+    }  
   //
   // A similar story exists for the node ID.  We can't just naively do a
   // GetNode ()->GetId () since GetNode is going to give us a Ptr<Node> which
-  // is reference counted.  We need to stash away the node ID for use in the
+  // is reference counted. We need to stash away the node ID for use in the
   // read thread.
   //
   m_nodeId = GetNode ()->GetId ();
@@ -263,6 +263,33 @@ FdNetDevice::StartDevice (void)
   // 22 bytes covers 14 bytes Ethernet header with possible 8 bytes LLC/SNAP
   m_fdReader->SetBufferSize (m_mtu + 22);
   m_fdReader->Start (m_fd, MakeCallback (&FdNetDevice::ReceiveCallback, this));
+
+  /////////////////////////////// get the bitrate and stach it
+  m_bitrate = 11000000;
+  // int sockfd;
+  // struct iw_statistics stats;
+  // struct iwreq req;
+  // memset(&stats, 0, sizeof(stats));
+  // memset(&req, 0, sizeof(iwreq));
+  // sprintf(req.ifr_name, "wlan0");
+  // req.u.data.pointer = &stats;
+  // req.u.data.length = sizeof(iw_statistics);
+  // #ifdef CLEAR_UPDATED
+  //   req.u.data.flags = 1;
+  // #endif
+  // m_bitrate = -1;
+  // if(ioctl(sockfd, SIOCGIWRATE, &req) == -1){
+  //   NS_LOG_DEBUG ("FdNetDevice::Start(): Failure, could not fetch bitrate.");
+  //   m_bitrate = 11000000;
+  // }
+  // else
+  // {
+  //   memcpy(&m_bitrate, &req.u.bitrate, sizeof(int));
+  // }
+	// close(sockfd);
+  /////////////////////////////////////////////////////////////////////////
+
+
 
   NotifyLinkUp ();
 }
@@ -765,5 +792,14 @@ FdNetDevice::SupportsSendFrom (void) const
 {
   return true;
 }
+
+
+//////////////////////////////////////// get bitrate from devoce is possible
+int
+FdNetDevice::GetDataBitRate (void)
+{
+  return m_bitrate;
+}
+
 
 } // namespace ns3

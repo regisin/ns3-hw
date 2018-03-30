@@ -28,7 +28,10 @@
 #include "split-state.h"
 #include "split-repositories.h"
 
+#include "ns3/core-module.h"
+
 #include "ns3/simple-wireless-module.h"
+#include "ns3/fd-net-device-module.h"
 #include "ns3/object.h"
 #include "ns3/packet.h"
 #include "ns3/node.h"

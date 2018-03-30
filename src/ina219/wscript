@@ -10,6 +10,7 @@ def build(bld):
     module = bld.create_ns3_module('ina219', ['core'])
     module.source = [
         'model/ina219.cc',
+        'model/ina219-source.cc',
         'helper/ina219-helper.cc',
         ]
 
@@ -22,6 +23,7 @@ def build(bld):
     headers.module = 'ina219'
     headers.source = [
         'model/ina219.h',
+        'model/ina219-source.h',
         'helper/ina219-helper.h',
         ]
 

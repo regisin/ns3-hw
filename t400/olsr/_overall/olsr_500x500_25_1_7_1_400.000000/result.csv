@@ -1,2 +1,0 @@
-total_bytes_received,throughput_(bps),no_of_received_packets,packet_delivery_ratio,mean_hop_count,mean_delay_(s),l3_drop_packets,total_initial_energy,total_remaining_energy,average_lifetime
-5322208.0,169352.2,10333.0,0.6047287,4.235714,0.010682178,1.0,2500.0,0.0,290.6775

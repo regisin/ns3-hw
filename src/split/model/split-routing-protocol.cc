@@ -2156,11 +2156,24 @@ RoutingProtocol::LinkSensing (const split::MessageHeader &msg,
   else
   {
       // split stuff
-      Ptr<SimpleWirelessNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<SimpleWirelessNetDevice> ();
-      double C = static_cast<double>(device->GetDataBitRate());
-      double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
+      StringValue sim_type;
+      GlobalValue::GetValueByName("SimulatorImplementationType", sim_type);
+      if (sim_type.Get() == StringValue ("ns3::RealtimeSimulatorImpl").Get()){
+        Ptr<FdNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<FdNetDevice> ();
+        double C = static_cast<double>(device->GetDataBitRate());
+        double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
+        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(senderIface), E);          
+      }else{
+        Ptr<SimpleWirelessNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<SimpleWirelessNetDevice> ();
+        double C = static_cast<double>(device->GetDataBitRate());
+        double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
+        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(senderIface), E);  
+      }
 
-      link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(senderIface), E);
+      
+
+
+
 
       RoutingTableComputation();
 
@@ -3010,11 +3023,19 @@ RoutingProtocol::RouteOutput (Ptr<Packet> p, const Ipv4Header &header, Ptr<NetDe
   LinkTuple *link_tuple = m_state.FindLinkTuple (entry2.nextAddr);
 
       // split stuff
-      Ptr<SimpleWirelessNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<SimpleWirelessNetDevice> ();
-      double C = static_cast<double>(device->GetDataBitRate());
-      double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
-
-      link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(entry2.nextAddr), E);
+      StringValue sim_type;
+      GlobalValue::GetValueByName("SimulatorImplementationType", sim_type);
+      if (sim_type.Get() == StringValue ("ns3::RealtimeSimulatorImpl").Get()){
+        Ptr<FdNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<FdNetDevice> ();
+        double C = static_cast<double>(device->GetDataBitRate());
+        double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
+        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(entry2.nextAddr), E);
+      }else{
+        Ptr<SimpleWirelessNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<SimpleWirelessNetDevice> ();
+        double C = static_cast<double>(device->GetDataBitRate());
+        double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
+        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(entry2.nextAddr), E);
+      }
 
 //      RoutingTableComputation();
       // split stuff end
@@ -3135,11 +3156,19 @@ bool RoutingProtocol::RouteInput  (Ptr<const Packet> p,
 
       LinkTuple *link_tuple = m_state.FindLinkTuple (entry2.nextAddr);
 
-      Ptr<SimpleWirelessNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<SimpleWirelessNetDevice> ();
-      double C = static_cast<double>(device->GetDataBitRate());
-      double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
-
-      link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(entry2.nextAddr), E);
+      StringValue sim_type;
+      GlobalValue::GetValueByName("SimulatorImplementationType", sim_type);
+      if (sim_type.Get() == StringValue ("ns3::RealtimeSimulatorImpl").Get()){
+        Ptr<FdNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<FdNetDevice> ();
+        double C = static_cast<double>(device->GetDataBitRate());
+        double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
+        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(entry2.nextAddr), E);        
+      }else{
+        Ptr<SimpleWirelessNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<SimpleWirelessNetDevice> ();
+        double C = static_cast<double>(device->GetDataBitRate());
+        double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
+        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(entry2.nextAddr), E);
+      }
 
 //      RoutingTableComputation();
       ////////////////////////////////////////////////////////////////////////// end
