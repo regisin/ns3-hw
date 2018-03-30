@@ -608,6 +608,7 @@ def configure(conf):
                 env.append_value('CCFLAGS', flag)
 
     add_gcc_flag('-Wno-error=deprecated-declarations')
+    add_gcc_flag('-Wno-psabi')
     add_gcc_flag('-fstrict-aliasing')
     add_gcc_flag('-Wstrict-aliasing')
 
