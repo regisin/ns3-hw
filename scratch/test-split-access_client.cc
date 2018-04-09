@@ -52,10 +52,10 @@ main (int argc, char *argv[])
   std::string dataRate("1000Mb/s");
   
   std::string deviceName ("wlan0");
-  std::string ipAddr ("10.1.1.2");
+  std::string ipAddr ("10.1.1.XX");
   std::string dstAddr ("10.1.1.1");
   std::string netmask ("255.255.255.0");
-  std::string macAddr ("00:00:00:00:00:01");
+  std::string macAddr ("00:00:00:00:00:XX");
 
   Ipv4Address localIp = Ipv4Address (ipAddr.c_str ());
   Ipv4Address remoteIp = Ipv4Address (dstAddr.c_str ());
