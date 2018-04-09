@@ -45,19 +45,13 @@ main (int argc, char *argv[])
   std::string  m_routing          = "split";
   bool         m_pcap             = false;
   double       m_charge           = 6300.0;
-
-  uint16_t     sinkPort           = 8000;
-  uint32_t     packetSize         = 10000; // bytes
-  std::string dataRate("1000Mb/s");
   
   std::string deviceName ("wlan0");
-  std::string ipAddr ("10.1.1.2");
-  std::string dstAddr ("10.1.1.1");
+  std::string ipAddr ("10.1.1.XX");
   std::string netmask ("255.255.255.0");
-  std::string macAddr ("00:00:00:00:00:01");
+  std::string macAddr ("00:00:00:00:00:XX");
 
   Ipv4Address localIp = Ipv4Address (ipAddr.c_str ());
-  Ipv4Address remoteIp = Ipv4Address (dstAddr.c_str ());
   Mac48AddressValue localMac = Mac48AddressValue (macAddr.c_str ());
   Ipv4Mask localMask (netmask.c_str ());
 
