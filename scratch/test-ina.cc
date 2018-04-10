@@ -24,7 +24,7 @@ NS_LOG_COMPONENT_DEFINE ("INA219test");
 
 Ptr<Ina219Source> ina;
 
-// Trace function for remaining charge at node.
+/// Trace function for remaining charge at node.
 void
 RemainingCharge (double oldValue, double remainingCharge)
 {
