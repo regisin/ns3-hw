@@ -1,4 +1,3 @@
-.gitignore
 *.diff
 *.orig
 *.patch
