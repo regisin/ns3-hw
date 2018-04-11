@@ -44,12 +44,19 @@ main (int argc, char *argv[])
 {
     LogComponentEnable("INA219test", LOG_LEVEL_INFO);
     int estimatedRuntime = 20000;
+    double initialCcharge = 7200.0;
+  
+    CommandLine cmd;
+    cmd.AddValue ("time",        "Estimated experiment run time, seconds [20000 s]", estimatedRuntime);
+    cmd.AddValue ("charge",      "Initial charge in Coulombs [7200.0 C]", initialCcharge);
+    cmd.Parse (argc, argv);
+  
     GlobalValue::Bind ("SimulatorImplementationType", StringValue ("ns3::RealtimeSimulatorImpl"));
 
     Ptr<Node> node = CreateObject<Node> ();
     Ptr<EnergySourceContainer> esCont = CreateObject<EnergySourceContainer> ();
     ina = CreateObject<Ina219Source> ();
-    ina->SetInitialCharge(7200.0);
+    ina->SetInitialCharge(initialCcharge);
     esCont->Add (ina);
     ina->SetNode (node);
     node->AggregateObject (esCont);
