@@ -387,6 +387,8 @@ def configure(conf):
     
     env['APPNAME'] = wutils.APPNAME
     env['VERSION'] = wutils.VERSION
+    
+    env.append_value('CXXFLAGS', '-Wno-psabi')
 
     if conf.env['CXX_NAME'] in ['gcc', 'icc']:
         if Options.options.build_profile == 'release': 
