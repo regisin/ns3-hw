@@ -387,8 +387,6 @@ def configure(conf):
     
     env['APPNAME'] = wutils.APPNAME
     env['VERSION'] = wutils.VERSION
-    
-    env.append_value('CXXFLAGS', '-Wno-psabi')
 
     if conf.env['CXX_NAME'] in ['gcc', 'icc']:
         if Options.options.build_profile == 'release': 
@@ -601,6 +599,8 @@ def configure(conf):
     # for compiling C code, copy over the CXX* flags
     conf.env.append_value('CCFLAGS', conf.env['CXXFLAGS'])
 
+    
+    
     def add_gcc_flag(flag):
         if env['COMPILER_CXX'] == 'g++' and 'CXXFLAGS' not in os.environ:
             if conf.check_compilation_flag(flag, mode='cxx'):
@@ -608,9 +608,11 @@ def configure(conf):
         if env['COMPILER_CC'] == 'gcc' and 'CCFLAGS' not in os.environ:
             if conf.check_compilation_flag(flag, mode='cc'):
                 env.append_value('CCFLAGS', flag)
-
+    
+    #add_gcc_flag('-Wno-psabi')
+    env.append_value('CXXFLAGS', '-Wno-psabi')
+    
     add_gcc_flag('-Wno-error=deprecated-declarations')
-    add_gcc_flag('-Wno-psabi')
     add_gcc_flag('-fstrict-aliasing')
     add_gcc_flag('-Wstrict-aliasing')
 
