@@ -165,20 +165,26 @@ SplitRoutingTableChangedCb (uint32_t size)
 }
 
 // throughput calc
-uint32_t totalBytesReceived;
+std::map<Mac48Address, double> link_tp;
 void
 MacRx (Ptr <const Packet> p)
 {
-	totalBytesReceived += p->GetSize();
+    EthernetHeader header (false);
+    Mac48Address source;
+    p->PeekHeader (header);
+    source = header.GetSource ();
+    link_tp[source] += p->GetSize();
 }
 void
 CalculateThroughput ()
 {
-    double throughput;
-    throughput = totalBytesReceived * 8.0;
-    totalBytesReceived = 0;
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Throughput: " << throughput);
-    Simulator::Schedule (Seconds (1.0), &CalculateThroughput);
+    for (std::map<Mac48Address, double>::iterator it = link_tp.begin() ; it != link_tp.end() ; ++it)
+    {
+        double throughput = it->second * (8.0 / 1e6);
+        it->second = 0.0;
+        NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Throughput (Mbps): " << it->first << ">" << throughput);
+    }
+    Simulator::Schedule (MilliSeconds (2000), &CalculateThroughput);
 }
 
 ////////////////
@@ -228,36 +234,25 @@ main (int argc, char *argv[])
   /*
    * Add the routing protocol
    */
-//   Ipv4ListRoutingHelper list;
-//   Ipv4StaticRoutingHelper staticRouting;
-//   list.Add (staticRouting, 0);
-
   InternetStackHelper internetStackHelper;
   if (m_routing == "aodv")
   {
       AodvHelper routing;
       internetStackHelper.SetRoutingHelper (routing);
-    //   list.Add (routing, 10);
   }else if (m_routing == "dsdv"){
       DsdvHelper routing;
       internetStackHelper.SetRoutingHelper (routing);
-    //   list.Add (routing, 10);
   }else if (m_routing == "olsr"){
       OlsrHelper routing;
       internetStackHelper.SetRoutingHelper (routing);
-    //   list.Add (routing, 10);
   }else if (m_routing == "etx"){
       EtxHelper routing;
       internetStackHelper.SetRoutingHelper (routing);
-    //   list.Add (routing, 10);
   }else if (m_routing == "split"){
       SplitHelper routing;
       internetStackHelper.SetRoutingHelper (routing);
-    //   list.Add (routing, 10);
   }
 
-  
-//   internetStackHelper.SetRoutingHelper (list);
   internetStackHelper.SetIpv4StackInstall(true);
   internetStackHelper.Install (node);
 
@@ -272,7 +267,7 @@ main (int argc, char *argv[])
   Config::ConnectWithoutContext("/NodeList/0/$ns3::Ipv4L3Protocol/UnicastForward", MakeCallback(&UnicastForwardCb));
   Config::ConnectWithoutContext("/NodeList/0/$ns3::Ipv4L3Protocol/LocalDeliver", MakeCallback(&LocalDeliverCb));
 
-  Config::ConnectWithoutContext("/NodeList/0/DeviceList/0/$ns3::FdNetDevice/Mac/MacRx", MakeCallback(&MacRx));
+  Config::ConnectWithoutContext("/NodeList/0/DeviceList/0/$ns3::FdNetDevice/MacRx", MakeCallback(&MacRx));
   Simulator::Schedule (Seconds (1.0), &CalculateThroughput);
 
   if (m_routing == "aodv")
