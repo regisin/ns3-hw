@@ -50,53 +50,117 @@ RemainingChargeCb (double oldValue, double remainingCharge)
   );
 }
 
-//routing cb
+//ipv4l3routing cb
 void
 SendOutgoingCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t interface)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": SendOutgoing: " << header->GetSource() << "->" <<header->GetDestination() << " - " << interface);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": SendOutgoing: " << header.GetSource() << "->" << header.GetDestination() << " - " << interface);
 }
 void
 UnicastForwardCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t interface)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": UnicastForward: " << header->GetSource() << "->" <<header->GetDestination() << " - " << interface);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": UnicastForward: " << header.GetSource() << "->" << header.GetDestination() << " - " << interface);
 }
 void
 LocalDeliverCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t interface)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": LocalDeliver: " << header->GetSource() << "->" <<header->GetDestination() << " - " << interface);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": LocalDeliver: " << header.GetSource() << "->" << header.GetDestination() << " - " << interface);
 }
 
 //routing cbs
 void
-RxCb (const PacketHeader & header, const MessageList & messages)
+OlsrRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
 {
-    std::string msgs = "::";
+    std::string msgs ("::");
     // MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....
-    for (std::vector<MessageHeader>::iterator it = messages->begin() ; it != messages->end(); ++it) {
-        msgs = msgs + std::to_string(*it->GetMessageType());
-        msgs = msgs + "-" + std::to_string(*it->GetHopCount());
-        msgs = msgs + "-" + std::to_string(*it->GetOriginatorAddress()) + ">";
+    for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
+        msgs = msgs + std::to_string(it->GetMessageType());
+        msgs = msgs + "-" + std::to_string(it->GetHopCount());
+        // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
     }
-    msgs = msgs + "::"
+    msgs = msgs + "::";
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Rx: " << msgs);
 }
 void
-TxCb (const PacketHeader & header, const MessageList & messages)
+OlsrTxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
 {
-    std::string msgs = "::";
+    std::string msgs ("::");
     //format
-    //::MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....>::
-    for (std::vector<MessageHeader>::iterator it = messages->begin() ; it != messages->end(); ++it) {
-        msgs = msgs + std::to_string(*it->GetMessageType());
-        msgs = msgs + "-" + std::to_string(*it->GetHopCount());
-        msgs = msgs + "-" + std::to_string(*it->GetOriginatorAddress()) + ">";
+    // ::MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....>::
+    for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
+        msgs = msgs + std::to_string(it->GetMessageType());
+        msgs = msgs + "-" + std::to_string(it->GetHopCount());
+        // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
     }
-    msgs = msgs + "::"
+    msgs = msgs + "::";
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Tx: " << msgs);
 }
 void
-RoutingTableChangedCb (uint32_t size)
+OlsrRoutingTableChangedCb (uint32_t size)
+{
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": RoutingTableChanged: " << std::to_string(size));
+}
+void
+EtxRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
+{
+    std::string msgs ("::");
+    // MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....
+    for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
+        msgs = msgs + std::to_string(it->GetMessageType());
+        msgs = msgs + "-" + std::to_string(it->GetHopCount());
+        // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
+    }
+    msgs = msgs + "::";
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Rx: " << msgs);
+}
+void
+EtxTxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
+{
+    std::string msgs ("::");
+    //format
+    // ::MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....>::
+    for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
+        msgs = msgs + std::to_string(it->GetMessageType());
+        msgs = msgs + "-" + std::to_string(it->GetHopCount());
+        // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
+    }
+    msgs = msgs + "::";
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Tx: " << msgs);
+}
+void
+EtxRoutingTableChangedCb (uint32_t size)
+{
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": RoutingTableChanged: " << std::to_string(size));
+}
+void
+SplitRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
+{
+    std::string msgs ("::");
+    // MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....
+    for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
+        msgs = msgs + std::to_string(it->GetMessageType());
+        msgs = msgs + "-" + std::to_string(it->GetHopCount());
+        // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
+    }
+    msgs = msgs + "::";
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Rx: " << msgs);
+}
+void
+SplitTxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
+{
+    std::string msgs ("::");
+    //format
+    // ::MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....>::
+    for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
+        msgs = msgs + std::to_string(it->GetMessageType());
+        msgs = msgs + "-" + std::to_string(it->GetHopCount());
+        // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
+    }
+    msgs = msgs + "::";
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Tx: " << msgs);
+}
+void
+SplitRoutingTableChangedCb (uint32_t size)
 {
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ": RoutingTableChanged: " << std::to_string(size));
 }
@@ -104,7 +168,7 @@ RoutingTableChangedCb (uint32_t size)
 // throughput calc
 uint32_t totalBytesReceived;
 void
-ReceivePacket (Ptr <const Packet> p)
+MacRx (Ptr <const Packet> p)
 {
 	totalBytesReceived += p->GetSize();
 }
@@ -141,7 +205,6 @@ main (int argc, char *argv[])
   double       m_charge           = 6300.0;
 
   uint16_t     sinkPort           = 8000;
-  std::string dataRate("1000Mb/s");
   
   std::string deviceName ("wlan0");
   std::string ipAddr ("10.1.1.1");
@@ -161,7 +224,7 @@ main (int argc, char *argv[])
 
   Ptr<Node> node = CreateObject<Node> ();
   Ptr<EnergySourceContainer> esCont = CreateObject<EnergySourceContainer> ();
-  Ptr<Ina219Source> ina = CreateObject<Ina219Source> ();
+  ina = CreateObject<Ina219Source> ();
   ina->SetInitialCharge(m_charge);
   esCont->Add (ina);
   ina->SetNode (node);
@@ -206,7 +269,6 @@ main (int argc, char *argv[])
 
   
 //   internetStackHelper.SetRoutingHelper (list);
-  internetStackHelper.SetRoutingHelper (list);
   internetStackHelper.SetIpv4StackInstall(true);
   internetStackHelper.Install (node);
 
@@ -223,14 +285,14 @@ main (int argc, char *argv[])
   sinkApp.Stop (Seconds (m_totalTime - 1.0));
   emu.EnablePcap (ipAddr + "_" + m_routing + "_server_" + std::to_string(m_run), device);
 
-  Config::Connect("/NodeList/0/$ns3::Ipv4L3Protocol/SendOutgoing", MakeCallback(&SendOutgoingCb));
-  Config::Connect("/NodeList/0/$ns3::Ipv4L3Protocol/UnicastForward", MakeCallback(&UnicastForwardCb));
-  Config::Connect("/NodeList/0/$ns3::Ipv4L3Protocol/LocalDeliver", MakeCallback(&LocalDeliverCb));
+  Config::ConnectWithoutContext("/NodeList/0/$ns3::Ipv4L3Protocol/SendOutgoing", MakeCallback(&SendOutgoingCb));
+  Config::ConnectWithoutContext("/NodeList/0/$ns3::Ipv4L3Protocol/UnicastForward", MakeCallback(&UnicastForwardCb));
+  Config::ConnectWithoutContext("/NodeList/0/$ns3::Ipv4L3Protocol/LocalDeliver", MakeCallback(&LocalDeliverCb));
 
-  Config::Connect("/NodeList/0/DeviceList/0/$ns3::FdNetDevice/Mac/MacRx", MakeCallback(&MacRx));
+  Config::ConnectWithoutContext("/NodeList/0/DeviceList/0/$ns3::FdNetDevice/Mac/MacRx", MakeCallback(&MacRx));
   Simulator::Schedule (Seconds (1.0), &CalculateThroughput);
 
-  Config::Connect("/NodeList/0/ApplicationList/0/$ns3::PacketSink/Rx", MakeCallback(&PacketSinkRxCb));
+  Config::ConnectWithoutContext("/NodeList/0/ApplicationList/0/$ns3::PacketSink/Rx", MakeCallback(&PacketSinkRxCb));
 
   if (m_routing == "aodv")
   {
@@ -238,17 +300,17 @@ main (int argc, char *argv[])
   }else if (m_routing == "dsdv"){
     ; // nothing to do, no traces available
   }else if (m_routing == "olsr"){
-    Config::Connect("/NodeList/0/$ns3::olsr::RoutingProtocol/Rx", MakeCallback(&RxCb));
-    Config::Connect("/NodeList/0/$ns3::olsr::RoutingProtocol/Tx", MakeCallback(&TxCb));
-    Config::Connect("/NodeList/0/$ns3::olsr::RoutingProtocol/RoutingTableChanged", MakeCallback(&RoutingTableChangedCb));
+    Config::ConnectWithoutContext("/NodeList/0/$ns3::olsr::RoutingProtocol/Rx", MakeCallback(&OlsrRxCb));
+    Config::ConnectWithoutContext("/NodeList/0/$ns3::olsr::RoutingProtocol/Tx", MakeCallback(&OlsrTxCb));
+    Config::ConnectWithoutContext("/NodeList/0/$ns3::olsr::RoutingProtocol/RoutingTableChanged", MakeCallback(&OlsrRoutingTableChangedCb));
   }else if (m_routing == "etx"){
-    Config::Connect("/NodeList/0/$ns3::etx::RoutingProtocol/Rx", MakeCallback(&RxCb));
-    Config::Connect("/NodeList/0/$ns3::etx::RoutingProtocol/Tx", MakeCallback(&TxCb));
-    Config::Connect("/NodeList/0/$ns3::etx::RoutingProtocol/RoutingTableChanged", MakeCallback(&RoutingTableChangedCb));
+    Config::ConnectWithoutContext("/NodeList/0/$ns3::etx::RoutingProtocol/Rx", MakeCallback(&EtxRxCb));
+    Config::ConnectWithoutContext("/NodeList/0/$ns3::etx::RoutingProtocol/Tx", MakeCallback(&EtxTxCb));
+    Config::ConnectWithoutContext("/NodeList/0/$ns3::etx::RoutingProtocol/RoutingTableChanged", MakeCallback(&EtxRoutingTableChangedCb));
   }else if (m_routing == "split"){
-    Config::Connect("/NodeList/0/$ns3::split::RoutingProtocol/Rx", MakeCallback(&RxCb));
-    Config::Connect("/NodeList/0/$ns3::split::RoutingProtocol/Tx", MakeCallback(&TxCb));
-    Config::Connect("/NodeList/0/$ns3::split::RoutingProtocol/RoutingTableChanged", MakeCallback(&RoutingTableChangedCb));
+    Config::ConnectWithoutContext("/NodeList/0/$ns3::split::RoutingProtocol/Rx", MakeCallback(&SplitRxCb));
+    Config::ConnectWithoutContext("/NodeList/0/$ns3::split::RoutingProtocol/Tx", MakeCallback(&SplitTxCb));
+    Config::ConnectWithoutContext("/NodeList/0/$ns3::split::RoutingProtocol/RoutingTableChanged", MakeCallback(&SplitRoutingTableChangedCb));
   }
 
   ina->TraceConnectWithoutContext ("RemainingCharge", MakeCallback (&RemainingChargeCb));
