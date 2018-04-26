@@ -69,11 +69,11 @@ LocalDeliverCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t int
 
 //routing cbs
 void
-OlsrRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
+OlsrRxCb (const ns3::olsr::PacketHeader & header, const ns3::olsr::MessageList & messages)
 {
     std::string msgs ("::");
     // MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....
-    for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
+    for (std::vector<ns3::olsr::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         msgs = msgs + std::to_string(it->GetMessageType());
         msgs = msgs + "-" + std::to_string(it->GetHopCount());
         // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
@@ -82,12 +82,12 @@ OlsrRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Rx: " << msgs);
 }
 void
-OlsrTxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
+OlsrTxCb (const ns3::olsr::PacketHeader & header, const ns3::olsr::MessageList & messages)
 {
     std::string msgs ("::");
     //format
     // ::MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....>::
-    for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
+    for (std::vector<ns3::olsr::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         msgs = msgs + std::to_string(it->GetMessageType());
         msgs = msgs + "-" + std::to_string(it->GetHopCount());
         // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
@@ -101,11 +101,11 @@ OlsrRoutingTableChangedCb (uint32_t size)
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ": RoutingTableChanged: " << std::to_string(size));
 }
 void
-EtxRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
+EtxRxCb (const ns3::etx::PacketHeader & header, const ns3::etx::MessageList & messages)
 {
     std::string msgs ("::");
     // MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....
-    for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
+    for (std::vector<ns3::etx::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         msgs = msgs + std::to_string(it->GetMessageType());
         msgs = msgs + "-" + std::to_string(it->GetHopCount());
         // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
@@ -114,12 +114,12 @@ EtxRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList 
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Rx: " << msgs);
 }
 void
-EtxTxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
+EtxTxCb (const ns3::etx::PacketHeader & header, const ns3::etx::MessageList & messages)
 {
     std::string msgs ("::");
     //format
     // ::MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....>::
-    for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
+    for (std::vector<ns3::etx::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         msgs = msgs + std::to_string(it->GetMessageType());
         msgs = msgs + "-" + std::to_string(it->GetHopCount());
         // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
