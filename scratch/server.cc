@@ -192,7 +192,7 @@ CalculateThroughput ()
 void
 PacketSinkRxCb(Ptr<const Packet> packet, const Address &address)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": PacketSinkRx: " << address << "-" << packet->GetSize());
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": PacketSinkRx: " << InetSocketAddress::ConvertFrom(address).GetIpv4() << "-" << packet->GetSize());
 }
 
 
