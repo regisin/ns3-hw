@@ -39,14 +39,14 @@ Ptr<Ina219Source> ina;
 void
 RemainingChargeCb (double oldValue, double remainingCharge)
 {
-  NS_LOG_INFO(Simulator::Now ().GetSeconds () << ": RemainingCharge: " <<
+  NS_LOG_INFO(Simulator::Now ().GetSeconds () << ":RemainingCharge:" <<
     ina->GetVoltage() << "," <<
     ina->GetSupplyVoltage() << "," <<
     ina->GetShuntVoltage() << "," <<
     ina->GetCurrent() << "," <<
     ina->GetPower() << "," <<
     remainingCharge << "," <<
-    ((100.0*remainingCharge) / ina->GetInitialCharge())
+    ((100.0*remainingCharge) / ina->GetInitialCharge()) << ";"
   );
 }
 
@@ -54,115 +54,136 @@ RemainingChargeCb (double oldValue, double remainingCharge)
 void
 SendOutgoingCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t interface)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": SendOutgoing: " << header.GetSource() << "->" << header.GetDestination() << " - " << interface);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":SendOutgoing:" <<
+      header.GetSource() << ">" <<
+      header.GetDestination() << ">" <<
+      interface << ";"
+    );
 }
 void
 UnicastForwardCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t interface)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": UnicastForward: " << header.GetSource() << "->" << header.GetDestination() << " - " << interface);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":UnicastForward:" <<
+      header.GetSource() << ">" <<
+      header.GetDestination() << ">" <<
+      interface << ";"
+    );
 }
 void
 LocalDeliverCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t interface)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": LocalDeliver: " << header.GetSource() << "->" << header.GetDestination() << " - " << interface);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":LocalDeliver:" <<
+      header.GetSource() << ">" <<
+      header.GetDestination() << ">" <<
+      interface << ";"
+    );
 }
 
 //routing cbs
 void
 OlsrRxCb (const ns3::olsr::PacketHeader & header, const ns3::olsr::MessageList & messages)
 {
-    std::string msgs ("::");
+    std::string msgs ("");
     // MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....
     for (std::vector<ns3::olsr::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         msgs = msgs + std::to_string(it->GetMessageType());
-        msgs = msgs + "-" + std::to_string(it->GetHopCount());
-        // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
+        msgs = msgs + ">" + std::to_string(it->GetHopCount());
+        // msgs = msgs + ">" + it->GetOriginatorAddress();
+        msgs = msgs + "-";
     }
-    msgs = msgs + "::";
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Rx: " << msgs);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":OlsrRx:" <<
+      msgs << ";"
+    );
 }
 void
 OlsrTxCb (const ns3::olsr::PacketHeader & header, const ns3::olsr::MessageList & messages)
 {
-    std::string msgs ("::");
-    //format
-    // ::MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....>::
+    std::string msgs ("");
     for (std::vector<ns3::olsr::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         msgs = msgs + std::to_string(it->GetMessageType());
-        msgs = msgs + "-" + std::to_string(it->GetHopCount());
-        // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
+        msgs = msgs + ">" + std::to_string(it->GetHopCount());
+        // msgs = msgs + ">" + it->GetOriginatorAddress();
     }
-    msgs = msgs + "::";
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Tx: " << msgs);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":OlsrTx:" <<
+      msgs << ";"
+    );
 }
 void
 OlsrRoutingTableChangedCb (uint32_t size)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": RoutingTableChanged: " << std::to_string(size));
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":OlsrRoutingTableChanged:" <<
+      std::to_string(size) << ";"
+    );
 }
 void
 EtxRxCb (const ns3::etx::PacketHeader & header, const ns3::etx::MessageList & messages)
 {
-    std::string msgs ("::");
-    // MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....
+    std::string msgs ("");
     for (std::vector<ns3::etx::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         msgs = msgs + std::to_string(it->GetMessageType());
-        msgs = msgs + "-" + std::to_string(it->GetHopCount());
-        // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
+        msgs = msgs + ">" + std::to_string(it->GetHopCount());
+        // msgs = msgs + ">" + it->GetOriginatorAddress();
+        msgs = msgs + "-";
     }
-    msgs = msgs + "::";
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Rx: " << msgs);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":EtxRx:" <<
+      msgs << ";"
+    );
 }
 void
 EtxTxCb (const ns3::etx::PacketHeader & header, const ns3::etx::MessageList & messages)
 {
-    std::string msgs ("::");
-    //format
-    // ::MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....>::
+    std::string msgs ("");
     for (std::vector<ns3::etx::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         msgs = msgs + std::to_string(it->GetMessageType());
         msgs = msgs + "-" + std::to_string(it->GetHopCount());
         // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
+        msgs = msgs + "-";
     }
-    msgs = msgs + "::";
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Tx: " << msgs);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":EtxTx:" <<
+      msgs << ";"
+    );
 }
 void
 EtxRoutingTableChangedCb (uint32_t size)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": RoutingTableChanged: " << std::to_string(size));
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":EtxRoutingTableChanged:" <<
+      std::to_string(size) << ";"
+    );
 }
 void
 SplitRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
 {
-    std::string msgs ("::");
-    // MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....
+    std::string msgs ("");
     for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         msgs = msgs + std::to_string(it->GetMessageType());
-        msgs = msgs + "-" + std::to_string(it->GetHopCount());
-        // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
+        msgs = msgs + ">" + std::to_string(it->GetHopCount());
+        // msgs = msgs + ">" + it->GetOriginatorAddress();
+        msgs = msgs + "-";
     }
-    msgs = msgs + "::";
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Rx: " << msgs);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":SplitRx:" <<
+      msgs << ";"
+    );
 }
 void
 SplitTxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
 {
-    std::string msgs ("::");
-    //format
-    // ::MessageType-HopCount-OriginatorAddress>MessageType-HopCount-OriginatorAddress>....>::
+    std::string msgs ("");
     for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         msgs = msgs + std::to_string(it->GetMessageType());
-        msgs = msgs + "-" + std::to_string(it->GetHopCount());
-        // msgs = msgs + "-" + it->GetOriginatorAddress() + ">";
+        msgs = msgs + ">" + std::to_string(it->GetHopCount());
+        // msgs = msgs + ">" + it->GetOriginatorAddress();
+        msgs = msgs + "-";
     }
-    msgs = msgs + "::";
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Tx: " << msgs);
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":SplitTx:" <<
+      msgs << ";"
+    );
 }
 void
 SplitRoutingTableChangedCb (uint32_t size)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": RoutingTableChanged: " << std::to_string(size));
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":SplitRoutingTableChanged:" <<
+      std::to_string(size) << ";"
+    );
 }
 
 // throughput calc
@@ -192,7 +213,9 @@ CalculateThroughput ()
 void
 OnOffApplicationTxCb(Ptr<const Packet> packet)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ": OnOffApplicationTx: " << packet->GetSize());
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":OnOffApplicationTx: " <<
+      packet->GetSize() << ";"
+    );
 }
 
 ////////////////
