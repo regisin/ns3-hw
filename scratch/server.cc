@@ -153,13 +153,16 @@ EtxRoutingTableChangedCb (uint32_t size)
 void
 SplitRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
 {
-    std::string msgs ("");
+    std::ostream stream;
     for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
-        msgs = msgs + std::to_string(it->GetMessageType());
-        msgs = msgs + ">" + std::to_string(it->GetHopCount());
-        // msgs = msgs + ">" + it->GetOriginatorAddress();
-        msgs = msgs + "-";
+        stream << std::to_string(it->GetMessageType());
+        stream << ">";
+        stream << std::to_string(it->GetHopCount());
+        stream << ">";
+        stream << it->GetOriginatorAddress();
+        stream << "-";
     }
+    std::string msgs =  stream.str();
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ":SplitRx:" <<
       msgs << ";"
     );
@@ -167,13 +170,16 @@ SplitRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageLis
 void
 SplitTxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
 {
-    std::string msgs ("");
+    std::ostream stream;
     for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
-        msgs = msgs + std::to_string(it->GetMessageType());
-        msgs = msgs + ">" + std::to_string(it->GetHopCount());
-        // msgs = msgs + ">" + it->GetOriginatorAddress();
-        msgs = msgs + "-";
+        stream << std::to_string(it->GetMessageType());
+        stream << ">";
+        stream << std::to_string(it->GetHopCount());
+        stream << ">";
+        stream << it->GetOriginatorAddress();
+        stream << "-";
     }
+    std::string msgs =  stream.str();
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ":SplitTx:" <<
       msgs << ";"
     );
@@ -200,12 +206,21 @@ MacRx (Ptr <const Packet> p)
 void
 CalculateThroughput ()
 {
+    std::ostringstream stream;
     for (std::map<Mac48Address, double>::iterator it = link_tp.begin() ; it != link_tp.end() ; ++it)
     {
-        double throughput = it->second * (8.0 / 1e6);
+        double throughput = it->second * (8.0 / 2e6);
         it->second = 0.0;
-        NS_LOG_INFO(Simulator::Now().GetSeconds() << ": Throughput (Mbps): " << it->first << ">" << throughput);
+        stream << "<";
+        stream << it->first;
+        stream << "-";
+        stream << std::to_string(throughput);
+        stream << ">";
     }
+    std::string tps =  stream.str();
+    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":Throughput:" <<
+      tps << ";"
+    );
     Simulator::Schedule (MilliSeconds (2000), &CalculateThroughput);
 }
 
