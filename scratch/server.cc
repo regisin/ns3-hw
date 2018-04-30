@@ -83,13 +83,16 @@ LocalDeliverCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t int
 void
 OlsrRxCb (const ns3::olsr::PacketHeader & header, const ns3::olsr::MessageList & messages)
 {
-    std::string msgs ("");
+    std::ostringstream stream;
     for (std::vector<ns3::olsr::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
-        msgs = msgs + std::to_string(it->GetMessageType());
-        msgs = msgs + ">" + std::to_string(it->GetHopCount());
-        // msgs = msgs + ">" + it->GetOriginatorAddress();
-        msgs = msgs + "-";
+        stream << std::to_string(it->GetMessageType());
+        stream << ">";
+        stream << std::to_string(it->GetHopCount());
+        stream << ">";
+        stream << it->GetOriginatorAddress();
+        stream << "-";
     }
+    std::string msgs =  stream.str();
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ":OlsrRx:" <<
       msgs << ";"
     );
@@ -97,13 +100,16 @@ OlsrRxCb (const ns3::olsr::PacketHeader & header, const ns3::olsr::MessageList &
 void
 OlsrTxCb (const ns3::olsr::PacketHeader & header, const ns3::olsr::MessageList & messages)
 {
-    std::string msgs ("");
+    std::ostringstream stream;
     for (std::vector<ns3::olsr::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
-        msgs = msgs + std::to_string(it->GetMessageType());
-        msgs = msgs + ">" + std::to_string(it->GetHopCount());
-        // msgs = msgs + ">" + it->GetOriginatorAddress();
-        msgs = msgs + "-";
+        stream << std::to_string(it->GetMessageType());
+        stream << ">";
+        stream << std::to_string(it->GetHopCount());
+        stream << ">";
+        stream << it->GetOriginatorAddress();
+        stream << "-";
     }
+    std::string msgs = stream.str();
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ":OlsrTx:" <<
       msgs << ";"
     );
@@ -118,13 +124,16 @@ OlsrRoutingTableChangedCb (uint32_t size)
 void
 EtxRxCb (const ns3::etx::PacketHeader & header, const ns3::etx::MessageList & messages)
 {
-    std::string msgs ("");
+    std::ostringstream stream;
     for (std::vector<ns3::etx::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
-        msgs = msgs + std::to_string(it->GetMessageType());
-        msgs = msgs + ">" + std::to_string(it->GetHopCount());
-        // msgs = msgs + ">" + it->GetOriginatorAddress();
-        msgs = msgs + "-";
+        stream << std::to_string(it->GetMessageType());
+        stream << ">";
+        stream << std::to_string(it->GetHopCount());
+        stream << ">";
+        stream << it->GetOriginatorAddress();
+        stream << "-";
     }
+    std::string msgs =  stream.str();
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ":EtxRx:" <<
       msgs << ";"
     );
@@ -132,13 +141,16 @@ EtxRxCb (const ns3::etx::PacketHeader & header, const ns3::etx::MessageList & me
 void
 EtxTxCb (const ns3::etx::PacketHeader & header, const ns3::etx::MessageList & messages)
 {
-    std::string msgs ("");
+    std::ostringstream stream;
     for (std::vector<ns3::etx::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
-        msgs = msgs + std::to_string(it->GetMessageType());
-        msgs = msgs + ">" + std::to_string(it->GetHopCount());
-        // msgs = msgs + ">" + it->GetOriginatorAddress();
-        msgs = msgs + "-";
+        stream << std::to_string(it->GetMessageType());
+        stream << ">";
+        stream << std::to_string(it->GetHopCount());
+        stream << ">";
+        stream << it->GetOriginatorAddress();
+        stream << "-";
     }
+    std::string msgs = stream.str();
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ":EtxTx:" <<
       msgs << ";"
     );
