@@ -153,7 +153,7 @@ EtxRoutingTableChangedCb (uint32_t size)
 void
 SplitRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
 {
-    std::ostream stream;
+    std::ostringstream stream;
     for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         stream << std::to_string(it->GetMessageType());
         stream << ">";
@@ -170,7 +170,7 @@ SplitRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageLis
 void
 SplitTxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageList & messages)
 {
-    std::ostream stream;
+    std::ostringstream stream;
     for (std::vector<ns3::split::MessageHeader>::const_iterator it = messages.begin() ; it != messages.end(); ++it) {
         stream << std::to_string(it->GetMessageType());
         stream << ">";
@@ -179,7 +179,7 @@ SplitTxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageLis
         stream << it->GetOriginatorAddress();
         stream << "-";
     }
-    std::string msgs =  stream.str();
+    std::string msgs = stream.str();
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ":SplitTx:" <<
       msgs << ";"
     );
@@ -217,7 +217,7 @@ CalculateThroughput ()
         stream << std::to_string(throughput);
         stream << ">";
     }
-    std::string tps =  stream.str();
+    std::string tps = stream.str();
     NS_LOG_INFO(Simulator::Now().GetSeconds() << ":Throughput:" <<
       tps << ";"
     );
