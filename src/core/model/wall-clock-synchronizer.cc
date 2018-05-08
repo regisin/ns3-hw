@@ -225,7 +225,7 @@ WallClockSynchronizer::DoSynchronize (uint64_t nsCurrent, uint64_t nsDelay)
 //
 // \todo Hardcoded tunable parameter below.
 //
-  if (numberJiffies > 3)
+  if (numberJiffies > 15)
     {
       NS_LOG_INFO ("SleepWait for " << numberJiffies * m_jiffy << " ns");
       NS_LOG_INFO ("SleepWait until " << nsCurrent + numberJiffies * m_jiffy 
