@@ -272,7 +272,7 @@ main (int argc, char *argv[])
   double       m_totalTime        = 1000.0;
   std::string  m_routing          = "split";
   bool         m_pcap             = false;
-  double       m_charge           = 6300.0;
+  double       m_charge           = 150.0;//6300.0; for 4x AA
 
   uint16_t     sinkPort           = 8000;
   uint32_t     packetSize         = 1024; // bytes
