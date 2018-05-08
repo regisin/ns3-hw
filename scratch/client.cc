@@ -292,6 +292,7 @@ main (int argc, char *argv[])
   CommandLine cmd;
   cmd.AddValue ("id",          "Experiment ID, to customize output file [1]", m_run);
   cmd.AddValue ("time",        "Simulation time, seconds [1000 s]", m_totalTime);
+  cmd.AddValue ("charge",      "Initial State of Charge [150 Coulombs]", m_charge);
   cmd.AddValue ("routing",     "Routing protocol to use, olsr default. [aodv/dsdv/olsr/etx/split]", m_routing);
   cmd.AddValue ("pcap",        "Enable PCAP traces on interfaces. [0]", m_pcap);
   cmd.Parse (argc, argv);
