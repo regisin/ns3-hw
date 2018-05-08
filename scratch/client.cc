@@ -255,7 +255,7 @@ void
 OnOffApplicationTxCb(Ptr<const Packet> packet)
 {
     NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
-      ":OnOffApplicationTx: " <<
+      ":OnOffApplicationTx:" <<
       packet->GetSize() << ";"
     );
 }
