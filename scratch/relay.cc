@@ -264,9 +264,9 @@ main (int argc, char *argv[])
   double       m_charge           = 150.0; //6300.0; for 4 x AA
   
   std::string deviceName ("wlan0");
-  std::string ipAddr ("10.1.1.07");
+  std::string ipAddr ("10.1.1.XX");
   std::string netmask ("255.255.255.0");
-  std::string macAddr ("00:00:00:00:00:07");
+  std::string macAddr ("00:00:00:00:00:XX");
 
   Ipv4Address localIp = Ipv4Address (ipAddr.c_str ());
   Mac48AddressValue localMac = Mac48AddressValue (macAddr.c_str ());
