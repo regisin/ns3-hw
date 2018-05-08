@@ -261,7 +261,7 @@ main (int argc, char *argv[])
   double       m_totalTime        = 2000.0;
   std::string  m_routing          = "split";
   bool         m_pcap             = false;
-  double       m_charge           = 6300.0;
+  double       m_charge           = 150.0; //6300.0; for 4 x AA
   
   std::string deviceName ("wlan0");
   std::string ipAddr ("10.1.1.07");
@@ -275,6 +275,7 @@ main (int argc, char *argv[])
   CommandLine cmd;
   cmd.AddValue ("id",          "Experiment ID, to customize output file [1]", m_run);
   cmd.AddValue ("time",        "Simulation time, seconds [1000 s]", m_totalTime);
+  cmd.AddValue ("charge",      "Initial State of Charge [150 Coulombs]", m_charge);
   cmd.AddValue ("routing",     "Routing protocol to use, olsr default. [aodv/dsdv/olsr/olsr-etx/split]", m_routing);
   cmd.AddValue ("pcap",        "Enable PCAP traces on interfaces. [0]", m_pcap);
   cmd.Parse (argc, argv);
