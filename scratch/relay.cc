@@ -38,7 +38,8 @@ Ptr<Ina219Source> ina;
 void
 RemainingChargeCb (double oldValue, double remainingCharge)
 {
-  NS_LOG_INFO(Simulator::Now ().GetSeconds () << ":RemainingCharge:" <<
+  NS_LOG_INFO(std::time(0) << ":" << Simulator::Now ().GetSeconds () <<
+    ":RemainingCharge:" <<
     ina->GetVoltage() << "," <<
     ina->GetSupplyVoltage() << "," <<
     ina->GetShuntVoltage() << "," <<
@@ -53,7 +54,8 @@ RemainingChargeCb (double oldValue, double remainingCharge)
 void
 SendOutgoingCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t interface)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":SendOutgoing:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":SendOutgoing:" <<
       header.GetSource() << ">" <<
       header.GetDestination() << ">" <<
       interface << ";"
@@ -62,7 +64,8 @@ SendOutgoingCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t int
 void
 UnicastForwardCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t interface)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":UnicastForward:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":UnicastForward:" <<
       header.GetSource() << ">" <<
       header.GetDestination() << ">" <<
       interface << ";"
@@ -71,7 +74,8 @@ UnicastForwardCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t i
 void
 LocalDeliverCb (const Ipv4Header &header, Ptr<const Packet> packet, uint32_t interface)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":LocalDeliver:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":LocalDeliver:" <<
       header.GetSource() << ">" <<
       header.GetDestination() << ">" <<
       interface << ";"
@@ -92,7 +96,8 @@ OlsrRxCb (const ns3::olsr::PacketHeader & header, const ns3::olsr::MessageList &
         stream << "-";
     }
     std::string msgs =  stream.str();
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":OlsrRx:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":OlsrRx:" <<
       msgs << ";"
     );
 }
@@ -109,14 +114,16 @@ OlsrTxCb (const ns3::olsr::PacketHeader & header, const ns3::olsr::MessageList &
         stream << "-";
     }
     std::string msgs = stream.str();
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":OlsrTx:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":OlsrTx:" <<
       msgs << ";"
     );
 }
 void
 OlsrRoutingTableChangedCb (uint32_t size)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":OlsrRoutingTableChanged:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":OlsrRoutingTableChanged:" <<
       std::to_string(size) << ";"
     );
 }
@@ -133,7 +140,8 @@ EtxRxCb (const ns3::etx::PacketHeader & header, const ns3::etx::MessageList & me
         stream << "-";
     }
     std::string msgs =  stream.str();
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":EtxRx:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":EtxRx:" <<
       msgs << ";"
     );
 }
@@ -150,14 +158,16 @@ EtxTxCb (const ns3::etx::PacketHeader & header, const ns3::etx::MessageList & me
         stream << "-";
     }
     std::string msgs = stream.str();
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":EtxTx:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":EtxTx:" <<
       msgs << ";"
     );
 }
 void
 EtxRoutingTableChangedCb (uint32_t size)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":EtxRoutingTableChanged:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":EtxRoutingTableChanged:" <<
       std::to_string(size) << ";"
     );
 }
@@ -174,7 +184,8 @@ SplitRxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageLis
         stream << "-";
     }
     std::string msgs =  stream.str();
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":SplitRx:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":SplitRx:" <<
       msgs << ";"
     );
 }
@@ -191,14 +202,16 @@ SplitTxCb (const ns3::split::PacketHeader & header, const ns3::split::MessageLis
         stream << "-";
     }
     std::string msgs = stream.str();
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":SplitTx:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":SplitTx:" <<
       msgs << ";"
     );
 }
 void
 SplitRoutingTableChangedCb (uint32_t size)
 {
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":SplitRoutingTableChanged:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":SplitRoutingTableChanged:" <<
       std::to_string(size) << ";"
     );
 }
@@ -229,7 +242,8 @@ CalculateThroughput ()
         stream << ">";
     }
     std::string tps = stream.str();
-    NS_LOG_INFO(Simulator::Now().GetSeconds() << ":Throughput:" <<
+    NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
+      ":Throughput:" <<
       tps << ";"
     );
     Simulator::Schedule (MilliSeconds (2000), &CalculateThroughput);
