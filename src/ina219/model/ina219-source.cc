@@ -230,7 +230,7 @@ Ina219Source::UpdateEnergySource (void)
   m_tempShuntVoltage = (double) shunt_voltage;
   m_tempSupplyVoltage = (double) supply_voltage;
 
-  double coulombToDecrease = (duration.GetSeconds () * m_tempCurrent);
+  double coulombToDecrease = 0.001 * (duration.GetSeconds () * m_tempCurrent);
 
   if (m_currentChargeCoulomb < coulombToDecrease) 
     {
@@ -238,7 +238,7 @@ Ina219Source::UpdateEnergySource (void)
     }
   else
     {
-      m_currentChargeCoulomb -= (coulombToDecrease/1000.0);
+      m_currentChargeCoulomb -= coulombToDecrease;
     }
 
   NotifyEnergyDrained();
