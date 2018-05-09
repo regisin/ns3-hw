@@ -82,7 +82,6 @@ WallClockSynchronizer::WallClockSynchronizer ()
   struct timespec ts;
   clock_getres (CLOCK_REALTIME, &ts);
   m_jiffy = ts.tv_sec * NS_PER_SEC + ts.tv_nsec;
-  std::cout << (long int) ts.tv_sec * NS_PER_SEC + ts.tv_nsec << std::endl;
   NS_LOG_INFO ("Jiffy is " << m_jiffy << " ns");
 #else
   m_jiffy = 1000000;
