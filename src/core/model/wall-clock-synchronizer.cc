@@ -82,6 +82,7 @@ WallClockSynchronizer::WallClockSynchronizer ()
   struct timespec ts;
   clock_getres (CLOCK_REALTIME, &ts);
   m_jiffy = ts.tv_sec * NS_PER_SEC + ts.tv_nsec;
+  std::cout << (long int) ts.tv_sec * NS_PER_SEC + ts.tv_nsec << std::endl;
   NS_LOG_INFO ("Jiffy is " << m_jiffy << " ns");
 #else
   m_jiffy = 1000000;
@@ -236,7 +237,7 @@ WallClockSynchronizer::DoSynchronize (uint64_t nsCurrent, uint64_t nsDelay)
 // interrupted by a Signal.  In this case, we need to return and let the 
 // simulator re-evaluate what to do.
 //
-      if (SleepWait ((numberJiffies - 3) * m_jiffy) == false)
+      if (SleepWait ((numberJiffies - 15) * m_jiffy) == false)
         {
           NS_LOG_INFO ("SleepWait interrupted");
           return false;
