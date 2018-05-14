@@ -3,3 +3,4 @@
 14:./waf --run="relay --time=600 --charge=120.0 --routing=aodv" > relay.log 2>&1
 44:./waf --run="relay --time=600 --charge=120.0 --routing=aodv" > relay.log 2>&1
 07:./waf --run="client --time=400 --charge=110.0 --routing=aodv" > client.log 2>&1
+46:# this is a test
