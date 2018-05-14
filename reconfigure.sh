@@ -20,3 +20,6 @@ echo $cmd
 cmd=${cmd//&/\\&}
 echo $cmd
 sed -i -e "s/#command#/$cmd/g" ./run.sh
+
+./waf configure --enable-sudo
+./waf build
