@@ -1,6 +1,7 @@
+#!/bin/bash
 nodenumber=$(tail -c 3 /etc/hostname)
 
-sleep 10 # on avg. this is enough to have connection, otherwise will not resolve github.com address
+sleep 7 # on avg. this is enough to have connection, otherwise will not solve github.com address
 # update source-code
 git fetch --all
 git reset --hard origin/master
@@ -19,8 +20,3 @@ echo $cmd
 cmd=${cmd//&/\\&}
 echo $cmd
 sed -i -e "s/#command#/$cmd/g" ./run.sh
-
-./waf configure --enable-sudo
-./waf build
-
-cd
