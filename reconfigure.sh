@@ -10,15 +10,10 @@ git reset --hard origin/master
 sed -i -e "s/XX/$nodenumber/g" ./scratch/client.cc
 sed -i -e "s/XX/$nodenumber/g" ./scratch/relay.cc
 cmd=$(cat config.txt | grep $nodenumber: | cut -d ':' -f2)
-echo $cmd
 cmd=${cmd//\\/\\\\}
-echo $cmd
 cmd=${cmd//\//\\/}
-echo $cmd
 cmd=${cmd//./\\.}
-echo $cmd
 cmd=${cmd//&/\\&}
-echo $cmd
 sed -i -e "s/#command#/$cmd/g" ./run.sh
 
 ./waf configure --enable-sudo
