@@ -274,6 +274,8 @@ main (int argc, char *argv[])
   bool         m_pcap             = false;
   double       m_charge           = 150.0;//6300.0; for 4x AA
 
+  uint32_t     m_maxBytes           = 1000000000; // 1 GB
+
   uint16_t     sinkPort           = 8000;
   uint32_t     packetSize         = 1024; // bytes
   std::string dataRate("11Mb/s");
@@ -292,6 +294,7 @@ main (int argc, char *argv[])
   CommandLine cmd;
   cmd.AddValue ("id",          "Experiment ID, to customize output file [1]", m_run);
   cmd.AddValue ("time",        "Simulation time, seconds [1000 s]", m_totalTime);
+  cmd.AddValue ("bytes",        "Amount of data to send (0 unlimited) [default 1 GB = 1000000000 B]", m_maxBytes);
   cmd.AddValue ("charge",      "Initial State of Charge [150 Coulombs]", m_charge);
   cmd.AddValue ("routing",     "Routing protocol to use, olsr default. [aodv/dsdv/olsr/etx/split]", m_routing);
   cmd.AddValue ("pcap",        "Enable PCAP traces on interfaces. [0]", m_pcap);
@@ -343,13 +346,23 @@ main (int argc, char *argv[])
   ipv4->SetUp (interface);
 
   AddressValue remoteAddress (InetSocketAddress (remoteIp, sinkPort));
-  OnOffHelper onoff ("ns3::TcpSocketFactory", Address ());
-  onoff.SetAttribute ("Remote", remoteAddress);
-  onoff.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
-  onoff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
-  onoff.SetAttribute ("DataRate", DataRateValue (dataRate));
-  onoff.SetAttribute ("PacketSize", UintegerValue (packetSize));
-  ApplicationContainer clientApps = onoff.Install (node);
+
+
+  BulkSendHelper bulk ("ns3::TcpSocketFactory", InetSocketAddress (remoteAddress, sinkPort));
+  // Set the amount of data to send in bytes.  Zero is unlimited.
+  bulk.SetAttribute ("MaxBytes", UintegerValue (m_maxBytes));
+  ApplicationContainer clientApps = bulk.Install (node);
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//   OnOffHelper onoff ("ns3::TcpSocketFactory", Address ());
+//   onoff.SetAttribute ("Remote", remoteAddress);
+//   onoff.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
+//   onoff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+//   onoff.SetAttribute ("DataRate", DataRateValue (dataRate));
+//   onoff.SetAttribute ("PacketSize", UintegerValue (packetSize));
+//   ApplicationContainer clientApps = onoff.Install (node);
+//////////////////////////////////////////////////////////////////////////////////////////////
+
   clientApps.Start (Seconds (2.0));
   clientApps.Stop (Seconds (m_totalTime - 2.0));
   emu.EnablePcap (ipAddr + "_" + m_routing + "_client_" + std::to_string(m_run), device);
