@@ -277,7 +277,7 @@ main (int argc, char *argv[])
   uint32_t     m_maxBytes           = 1000000000; // 1 GB
 
   uint16_t     sinkPort           = 8000;
-  uint32_t     packetSize         = 1024; // bytes
+//   uint32_t     packetSize         = 1024; // bytes
   std::string dataRate("11Mb/s");
   
   std::string deviceName ("wlan0");
