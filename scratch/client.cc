@@ -252,10 +252,10 @@ CalculateThroughput ()
 
 //app onoff tx
 void
-OnOffApplicationTxCb(Ptr<const Packet> packet)
+ApplicationTxCb(Ptr<const Packet> packet)
 {
     NS_LOG_INFO(std::time(0) << ":" << Simulator::Now().GetSeconds() <<
-      ":OnOffApplicationTx:" <<
+      ":ApplicationTx:" <<
       packet->GetSize() << ";"
     );
 }
@@ -375,7 +375,8 @@ main (int argc, char *argv[])
   Config::ConnectWithoutContext("/NodeList/0/DeviceList/0/$ns3::FdNetDevice/MacRx", MakeCallback(&MacRx));
   Simulator::Schedule (Seconds (1.0), &CalculateThroughput);
 
-  Config::ConnectWithoutContext("/NodeList/0/ApplicationList/0/$ns3::OnOffApplication/Tx", MakeCallback(&OnOffApplicationTxCb));
+  Config::ConnectWithoutContext("/NodeList/0/ApplicationList/0/$ns3::OnOffApplication/Tx", MakeCallback(&ApplicationTxCb));
+  Config::ConnectWithoutContext("/NodeList/0/ApplicationList/0/$ns3::BulkSendApplication/Tx", MakeCallback(&ApplicationTxCb));
 
   if (m_routing == "aodv")
   {
