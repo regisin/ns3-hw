@@ -348,7 +348,8 @@ main (int argc, char *argv[])
   AddressValue remoteAddress (InetSocketAddress (remoteIp, sinkPort));
 
 
-  BulkSendHelper bulk ("ns3::TcpSocketFactory", InetSocketAddress (remoteAddress, sinkPort));
+  BulkSendHelper bulk ("ns3::TcpSocketFactory", Address ());
+  bulk.SetAttribute ("Remote", remoteAddress);  
   // Set the amount of data to send in bytes.  Zero is unlimited.
   bulk.SetAttribute ("MaxBytes", UintegerValue (m_maxBytes));
   ApplicationContainer clientApps = bulk.Install (node);
