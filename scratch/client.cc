@@ -364,8 +364,8 @@ main (int argc, char *argv[])
 //   ApplicationContainer clientApps = onoff.Install (node);
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-  clientApps.Start (Seconds (2.0));
-  clientApps.Stop (Seconds (m_totalTime - 2.0));
+  clientApps.Start (Seconds (12.0));
+  clientApps.Stop (Seconds (m_totalTime - 12.0));
   emu.EnablePcap (ipAddr + "_" + m_routing + "_client_" + std::to_string(m_run), device);
 
   Config::ConnectWithoutContext("/NodeList/0/$ns3::Ipv4L3Protocol/SendOutgoing", MakeCallback(&SendOutgoingCb));
