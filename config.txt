@@ -2,4 +2,4 @@
 13:./waf --run="relay --time=600 --charge=120.0 --routing=etx" > relay13.log 2>&1
 14:./waf --run="relay --time=600 --charge=120.0 --routing=etx" > relay14.log 2>&1
 44:./waf --run="relay --time=600 --charge=120.0 --routing=etx" > relay44.log 2>&1
-07:./waf --run="client --time=420 --charge=115.0 --routing=olsr" > client.log 2>&1
+07:./waf --run="client --time=420 --charge=115.0 --routing=etx" > client.log 2>&1
