@@ -364,7 +364,7 @@ main (int argc, char *argv[])
 //   ApplicationContainer clientApps = onoff.Install (node);
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-  clientApps.Start (Seconds (12.0));
+  clientApps.Start (Seconds (40.0));
   clientApps.Stop (Seconds (m_totalTime - 12.0));
   emu.EnablePcap (ipAddr + "_" + m_routing + "_client_" + std::to_string(m_run), device);
 
