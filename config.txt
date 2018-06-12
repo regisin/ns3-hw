@@ -3,3 +3,5 @@
 14:./waf --run="relay --time=600 --charge=120.0 --routing=split" > relay14.log 2>&1
 44:./waf --run="relay --time=600 --charge=120.0 --routing=split" > relay44.log 2>&1
 07:./waf --run="client --time=458 --charge=115.0 --routing=split" > client.log 2>&1
+101:./waf --run="server --time=650 --charge=140.0 --routing=split" > server.log 2>&1
+130:./waf --run="client --time=458 --charge=115.0 --routing=split" > client.log 2>&1
