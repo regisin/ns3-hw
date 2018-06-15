@@ -347,21 +347,23 @@ main (int argc, char *argv[])
 
   AddressValue remoteAddress (InetSocketAddress (remoteIp, sinkPort));
 
-
-  BulkSendHelper bulk ("ns3::TcpSocketFactory", Address ());
-  bulk.SetAttribute ("Remote", remoteAddress);  
-  // Set the amount of data to send in bytes.  Zero is unlimited.
-  bulk.SetAttribute ("MaxBytes", UintegerValue (m_maxBytes));
-  ApplicationContainer clientApps = bulk.Install (node);
+  
+//////////////////////////////////////////////////////////////////////////////////////////////
+//  BulkSendHelper bulk ("ns3::TcpSocketFactory", Address ());
+//  bulk.SetAttribute ("Remote", remoteAddress);  
+//  // Set the amount of data to send in bytes.  Zero is unlimited.
+//  bulk.SetAttribute ("MaxBytes", UintegerValue (m_maxBytes));
+//  ApplicationContainer clientApps = bulk.Install (node);
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-//   OnOffHelper onoff ("ns3::TcpSocketFactory", Address ());
-//   onoff.SetAttribute ("Remote", remoteAddress);
-//   onoff.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
-//   onoff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
-//   onoff.SetAttribute ("DataRate", DataRateValue (dataRate));
-//   onoff.SetAttribute ("PacketSize", UintegerValue (packetSize));
-//   ApplicationContainer clientApps = onoff.Install (node);
+   OnOffHelper onoff ("ns3::TcpSocketFactory", Address ());
+   onoff.SetAttribute ("Remote", remoteAddress);
+   onoff.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
+   onoff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+   onoff.SetAttribute ("DataRate", DataRateValue (dataRate));
+   onoff.SetAttribute ("PacketSize", UintegerValue (packetSize));
+   ApplicationContainer clientApps = onoff.Install (node);
 //////////////////////////////////////////////////////////////////////////////////////////////
 
   clientApps.Start (Seconds (40.0));
