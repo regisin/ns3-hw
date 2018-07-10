@@ -1,5 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
+ * Copyright (c) 2004 Francisco J. Ros
  * Copyright (c) 2007 INESC Porto
  *
  * This program is free software; you can redistribute it and/or modify
@@ -15,758 +16,605 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Author: Gustavo J. A. M. Carneiro  <gjc@inescporto.pt>
- * 
- * Modified by: Paulo A. Regis  <pregis@nevada.unr.edu>
+ * Authors: Francisco J. Ros  <fjrm@dif.um.es>
+ *          Gustavo J. A. M. Carneiro <gjc@inescporto.pt>
  */
 
-#ifndef SPLIT_HEADER_H
-#define SPLIT_HEADER_H
+///
+/// \file	split-state.cc
+/// \brief	Implementation of all functions needed for manipulating the internal
+///		state of an SPLIT node.
+///
 
-#include <stdint.h>
-#include <vector>
-#include "ns3/header.h"
-#include "ns3/ipv4-address.h"
-#include "ns3/nstime.h"
+#include "split-state.h"
 
-#define SPLIT_UNDEFINED_LQ 0         // -------------------- NEW
-#define SPLIT_MAXIMUM_METRIC 65535   // -------------------- NEW
 
 namespace ns3 {
 namespace split {
 
-double EmfToSeconds (uint8_t emf);
-uint8_t SecondsToEmf (double seconds);
+/********** MPR Selector Set Manipulation **********/
 
- // ------------- START
-uint8_t EtxValToEmf (double etxval);
-double EmfToEtxVal (uint8_t splitFormat);
- // ------------- END
-
-/**
- * \ingroup split
- *
- * The basic layout of any packet in SPLIT is as follows (omitting IP and
- * UDP headers):
-  \verbatim
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |         Packet Length         |    Packet Sequence Number     |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  Message Type |     Vtime     |         Message Size          |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                      Originator Address                       |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  Time To Live |   Hop Count   |    Message Sequence Number    |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                                                               |
-   :                            MESSAGE                            :
-   |                                                               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  Message Type |     Vtime     |         Message Size          |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                      Originator Address                       |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  Time To Live |   Hop Count   |    Message Sequence Number    |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                                                               |
-   :                            MESSAGE                            :
-   |                                                               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   :                                                               :
-            (etc.)
-  \endverbatim
-  *
-  * This header only holds the common part of a message group, i.e.,
-  * the first 4 bytes.
-  */
-class PacketHeader : public Header
+MprSelectorTuple*
+SplitState::FindMprSelectorTuple (Ipv4Address const &mainAddr)
 {
-public:
-  PacketHeader ();
-  virtual ~PacketHeader ();
-
-  /**
-   * Set the packet total length.
-   * \param length The packet length.
-   */
-  void SetPacketLength (uint16_t length)
-  {
-    m_packetLength = length;
-  }
-
-  /**
-   * Get the packet total length.
-   * \return The packet length.
-   */
-  uint16_t GetPacketLength () const
-  {
-    return m_packetLength;
-  }
-
-  /**
-   * Set the packet sequence number.
-   * \param seqnum The packet sequence number.
-   */
-  void SetPacketSequenceNumber (uint16_t seqnum)
-  {
-    m_packetSequenceNumber = seqnum;
-  }
-
-  /**
-   * Get the packet sequence number.
-   * \returns The packet sequence number.
-   */
-  uint16_t GetPacketSequenceNumber () const
-  {
-    return m_packetSequenceNumber;
-  }
-
-private:
-  uint16_t m_packetLength;          //!< The packet length.
-  uint16_t m_packetSequenceNumber;  //!< The packet sequence number.
-
-public:
-  /**
-   * \brief Get the type ID.
-   * \return The object TypeId.
-   */
-  static TypeId GetTypeId (void);
-  virtual TypeId GetInstanceTypeId (void) const;
-  virtual void Print (std::ostream &os) const;
-  virtual uint32_t GetSerializedSize (void) const;
-  virtual void Serialize (Buffer::Iterator start) const;
-  virtual uint32_t Deserialize (Buffer::Iterator start);
-};
-
-/**
- * \ingroup split
- *
- * This header can store HELP, TC, MID and HNA messages.
- * The header size is variable, and depends on the
- * actual message type.
- *
-  \verbatim
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  Message Type |     Vtime     |         Message Size          |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                      Originator Address                       |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  Time To Live |   Hop Count   |    Message Sequence Number    |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                                                               |
-   :                            MESSAGE                            :
-   |                                                               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  \endverbatim
- */
-class MessageHeader : public Header
-{
-public:
-  /**
-   * Message type
-   */
-  enum MessageType
-  {
-    HELLO_MESSAGE = 1,
-    TC_MESSAGE    = 2,
-    MID_MESSAGE   = 3,
-    HNA_MESSAGE   = 4,
-  };
-
-  MessageHeader ();
-  virtual ~MessageHeader ();
-
-  /**
-   * Set the message type.
-   * \param messageType The message type.
-   */
-  void SetMessageType (MessageType messageType)
-  {
-    m_messageType = messageType;
-  }
-  /**
-   * Get the message type.
-   * \return The message type.
-   */
-  MessageType GetMessageType () const
-  {
-    return m_messageType;
-  }
-
-  /**
-   * Set the validity time.
-   * \param time The validity time.
-   */
-  void SetVTime (Time time)
-  {
-    m_vTime = SecondsToEmf (time.GetSeconds ());
-  }
-  /**
-   * Get the validity time.
-   * \return The validity time.
-   */
-  Time GetVTime () const
-  {
-    return Seconds (EmfToSeconds (m_vTime));
-  }
-
-  /**
-   * Set the originator address.
-   * \param originatorAddress The originator address.
-   */
-  void SetOriginatorAddress (Ipv4Address originatorAddress)
-  {
-    m_originatorAddress = originatorAddress;
-  }
-  /**
-   * Get the originator address.
-   * \return The originator address.
-   */
-  Ipv4Address GetOriginatorAddress () const
-  {
-    return m_originatorAddress;
-  }
-
-  /**
-   * Set the time to live.
-   * \param timeToLive The time to live.
-   */
-  void SetTimeToLive (uint8_t timeToLive)
-  {
-    m_timeToLive = timeToLive;
-  }
-  /**
-   * Get the time to live.
-   * \return The time to live.
-   */
-  uint8_t GetTimeToLive () const
-  {
-    return m_timeToLive;
-  }
-
-  /**
-   * Set the hop count.
-   * \param hopCount The hop count.
-   */
-  void SetHopCount (uint8_t hopCount)
-  {
-    m_hopCount = hopCount;
-  }
-  /**
-   * Get the hop count.
-   * \return The hop count.
-   */
-  uint8_t GetHopCount () const
-  {
-    return m_hopCount;
-  }
-
-  /**
-   * Set the message sequence number.
-   * \param messageSequenceNumber The message sequence number.
-   */
-  void SetMessageSequenceNumber (uint16_t messageSequenceNumber)
-  {
-    m_messageSequenceNumber = messageSequenceNumber;
-  }
-  /**
-   * Get the message sequence number.
-   * \return The message sequence number.
-   */
-  uint16_t GetMessageSequenceNumber () const
-  {
-    return m_messageSequenceNumber;
-  }
-
-private:
-  MessageType m_messageType;        //!< The message type
-  uint8_t m_vTime;                  //!< The validity time.
-  Ipv4Address m_originatorAddress;  //!< The originator address.
-  uint8_t m_timeToLive;             //!< The time to live.
-  uint8_t m_hopCount;               //!< The hop count.
-  uint16_t m_messageSequenceNumber; //!< The message sequence number.
-  uint16_t m_messageSize;           //!< The message size.
-
-public:
-  /**
-   * \brief Get the type ID.
-   * \return The object TypeId.
-   */
-  static TypeId GetTypeId (void);
-  virtual TypeId GetInstanceTypeId (void) const;
-  virtual void Print (std::ostream &os) const;
-  virtual uint32_t GetSerializedSize (void) const;
-  virtual void Serialize (Buffer::Iterator start) const;
-  virtual uint32_t Deserialize (Buffer::Iterator start);
-
-  /**
-   * \ingroup split
-   * MID Message Format
-   *
-  \verbatim
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                   SPLIT Interface Address                     |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                   SPLIT Interface Address                     |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                              ...                              |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  \endverbatim
-  */
-  struct Mid
-  {
-    std::vector<Ipv4Address> interfaceAddresses;  //!< Interface Address container.
-    /**
-     * This method is used to print the content of a MID message.
-     * \param os output stream
-     */
-    void Print (std::ostream &os) const;
-    /**
-     * Returns the expected size of the header.
-     * \returns the expected size of the header.
-     */
-    uint32_t GetSerializedSize (void) const;
-    /**
-     * This method is used by Packet::AddHeader to
-     * store a header into the byte buffer of a packet.
-     *
-     * \param start an iterator which points to where the header should
-     *        be written.
-     */
-    void Serialize (Buffer::Iterator start) const;
-    /**
-     * This method is used by Packet::RemoveHeader to
-     * re-create a header from the byte buffer of a packet.
-     *
-     * \param start an iterator which points to where the header should
-     *        read from.
-     * \param messageSize the message size.
-     * \returns the number of bytes read.
-     */
-    uint32_t Deserialize (Buffer::Iterator start, uint32_t messageSize);
-  };
-
-  /**
-   * \ingroup split
-   * HELLO Message Format
-   *
-  \verbatim
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |          Reserved             |     Htime     |  Willingness  |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |   Link Code   |   Reserved    |       Link Message Size       |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                  Neighbor Interface Address                   |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                  Neighbor Interface Address                   |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   :                             .  .  .                           :
-   :                                                               :
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |   Link Code   |   Reserved    |       Link Message Size       |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                  Neighbor Interface Address                   |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                  Neighbor Interface Address                   |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   :                                                               :
-     (etc.)
-  \endverbatim
-  */
-  struct Hello
-  {
-    /**
-     * Link message item
-     */
-    struct LinkMessage
+  for (MprSelectorSet::iterator it = m_mprSelectorSet.begin ();
+       it != m_mprSelectorSet.end (); it++)
     {
-      uint8_t linkCode;       //!< Link code
-      std::vector<Ipv4Address> neighborInterfaceAddresses;  //!< Neighbor interface address container.
-      
-      // ------------------------------------- START
-      uint8_t RLQ;
-      uint8_t ETX;
-        
-      void SetETX (double etxval)
-      {
-//          std::cout << "sd " << etxval << std::endl;
-        this->ETX = EtxValToEmf (etxval);
-      }
-        
-      double GetETX () const
-      {
-        if (EmfToEtxVal (this->ETX) <= 0) {
-          return SPLIT_MAXIMUM_METRIC;
+      if (it->mainAddr == mainAddr)
+        {
+          return &(*it);
         }
-        return  EmfToEtxVal (this->ETX);
-      }
-        
-      void SetRLQ (double etxval)
-      {
-        this->RLQ = EtxValToEmf (etxval);
-      }
-        
-      double GetRLQ () const
-      {
-        if (EmfToEtxVal (this->RLQ) <= 0) {
-          return SPLIT_UNDEFINED_LQ;
-        }
-        return  EmfToEtxVal (this->RLQ);
-      }
-      // ------------------------------------- END
-      
-    };
-
-    uint8_t hTime;  //!< HELLO emission interval (coded)
-
-    /**
-     * Set the HELLO emission interval.
-     * \param time The HELLO emission interval.
-     */
-    void SetHTime (Time time)
-    {
-      this->hTime = SecondsToEmf (time.GetSeconds ());
     }
-
-    /**
-     * Get the HELLO emission interval.
-     * \return The HELLO emission interval.
-     */
-    Time GetHTime () const
-    {
-      return Seconds (EmfToSeconds (this->hTime));
-    }
-
-    uint8_t willingness; //!< The willingness of a node to carry and forward traffic for other nodes.
-    std::vector<LinkMessage> linkMessages; //!< Link messages container.
-
-    /**
-     * This method is used to print the content of a MID message.
-     * \param os output stream
-     */
-    void Print (std::ostream &os) const;
-    /**
-     * Returns the expected size of the header.
-     * \returns the expected size of the header.
-     */
-    uint32_t GetSerializedSize (void) const;
-    /**
-     * This method is used by Packet::AddHeader to
-     * store a header into the byte buffer of a packet.
-     *
-     * \param start an iterator which points to where the header should
-     *        be written.
-     */
-    void Serialize (Buffer::Iterator start) const;
-    /**
-     * This method is used by Packet::RemoveHeader to
-     * re-create a header from the byte buffer of a packet.
-     *
-     * \param start an iterator which points to where the header should
-     *        read from.
-     * \param messageSize the message size.
-     * \returns the number of bytes read.
-     */
-    uint32_t Deserialize (Buffer::Iterator start, uint32_t messageSize);
-  };
-
-  /**
-   * \ingroup split
-   * TC Message Format
-   *
-   \verbatim
-     0                   1                   2                   3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |              ANSN             |           Reserved            |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |               Advertised Neighbor Main Address                |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |               Advertised Neighbor Main Address                |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                              ...                              |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   \endverbatim
-   */
-  struct Tc
-  {
-    std::vector<Ipv4Address> neighborAddresses; //!< Neighbor address container.
-    uint16_t ansn;  //!< Advertised Neighbor Sequence Number.
-
-    // -------------------------------------- START
-    std::vector<uint8_t> ETX;
-    void SetETX (double etxval)
-    {
-      this->ETX.push_back (EtxValToEmf (etxval));
-    }
-    double GetETX (uint8_t i) const
-    {
-      return  EmfToEtxVal (this->ETX.at(i));
-    }
-    // -------------------------------------- END
-    
-    /**
-     * This method is used to print the content of a MID message.
-     * \param os output stream
-     */
-    void Print (std::ostream &os) const;
-    /**
-     * Returns the expected size of the header.
-     * \returns the expected size of the header.
-     */
-    uint32_t GetSerializedSize (void) const;
-    /**
-     * This method is used by Packet::AddHeader to
-     * store a header into the byte buffer of a packet.
-     *
-     * \param start an iterator which points to where the header should
-     *        be written.
-     */
-    void Serialize (Buffer::Iterator start) const;
-    /**
-     * This method is used by Packet::RemoveHeader to
-     * re-create a header from the byte buffer of a packet.
-     *
-     * \param start an iterator which points to where the header should
-     *        read from.
-     * \param messageSize the message size.
-     * \returns the number of bytes read.
-     */
-    uint32_t Deserialize (Buffer::Iterator start, uint32_t messageSize);
-  };
-
-
-  /**
-   * \ingroup split
-   * HNA (Host Network Association) Message Format
-   *
-   \verbatim
-     0                   1                   2                   3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                         Network Address                       |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                             Netmask                           |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                         Network Address                       |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                             Netmask                           |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                              ...                              |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   \endverbatim
-   */
-  struct Hna
-  {
-    /**
-     * Association item structure.
-     */
-    struct Association
-    {
-      Ipv4Address address; //!< IPv4 Address.
-      Ipv4Mask mask;       //!< IPv4 netmask.
-    };
-
-    std::vector<Association> associations; //!< Association container.
-
-    /**
-     * This method is used to print the content of a MID message.
-     * \param os output stream
-     */
-    void Print (std::ostream &os) const;
-    /**
-     * Returns the expected size of the header.
-     * \returns the expected size of the header.
-     */
-    uint32_t GetSerializedSize (void) const;
-    /**
-     * This method is used by Packet::AddHeader to
-     * store a header into the byte buffer of a packet.
-     *
-     * \param start an iterator which points to where the header should
-     *        be written.
-     */
-    void Serialize (Buffer::Iterator start) const;
-    /**
-     * This method is used by Packet::RemoveHeader to
-     * re-create a header from the byte buffer of a packet.
-     *
-     * \param start an iterator which points to where the header should
-     *        read from.
-     * \param messageSize the message size.
-     * \returns the number of bytes read.
-     */
-    uint32_t Deserialize (Buffer::Iterator start, uint32_t messageSize);
-  };
-
-private:
-  /**
-   * Structure holding the message content.
-   */
-  struct
-  {
-    Mid mid;      //!< MID message (optional).
-    Hello hello;  //!< HELLO message (optional).
-    Tc tc;        //!< TC message (optional).
-    Hna hna;      //!< HNA message (optional).
-  } m_message; //!< The actual message being carried.
-
-public:
-  /**
-   * Set the message type to MID and return the message content.
-   * \returns The MID message.
-   */
-  Mid& GetMid ()
-  {
-    if (m_messageType == 0)
-      {
-        m_messageType = MID_MESSAGE;
-      }
-    else
-      {
-        NS_ASSERT (m_messageType == MID_MESSAGE);
-      }
-    return m_message.mid;
-  }
-
-  /**
-   * Set the message type to HELLO and return the message content.
-   * \returns The HELLO message.
-   */
-  Hello& GetHello ()
-  {
-    if (m_messageType == 0)
-      {
-        m_messageType = HELLO_MESSAGE;
-      }
-    else
-      {
-        NS_ASSERT (m_messageType == HELLO_MESSAGE);
-      }
-    return m_message.hello;
-  }
-
-  /**
-   * Set the message type to TC and return the message content.
-   * \returns The TC message.
-   */
-  Tc& GetTc ()
-  {
-    if (m_messageType == 0)
-      {
-        m_messageType = TC_MESSAGE;
-      }
-    else
-      {
-        NS_ASSERT (m_messageType == TC_MESSAGE);
-      }
-    return m_message.tc;
-  }
-
-  /**
-   * Set the message type to HNA and return the message content.
-   * \returns The HNA message.
-   */
-  Hna& GetHna ()
-  {
-    if (m_messageType == 0)
-      {
-        m_messageType = HNA_MESSAGE;
-      }
-    else
-      {
-        NS_ASSERT (m_messageType == HNA_MESSAGE);
-      }
-    return m_message.hna;
-  }
-
-
-  /**
-   * Get the MID message.
-   * \returns The MID message.
-   */
-  const Mid& GetMid () const
-  {
-    NS_ASSERT (m_messageType == MID_MESSAGE);
-    return m_message.mid;
-  }
-
-  /**
-   * Get the HELLO message.
-   * \returns The HELLO message.
-   */
-  const Hello& GetHello () const
-  {
-    NS_ASSERT (m_messageType == HELLO_MESSAGE);
-    return m_message.hello;
-  }
-
-  /**
-   * Get the TC message.
-   * \returns The TC message.
-   */
-  const Tc& GetTc () const
-  {
-    NS_ASSERT (m_messageType == TC_MESSAGE);
-    return m_message.tc;
-  }
-
-  /**
-   * Get the HNA message.
-   * \returns The HNA message.
-   */
-  const Hna& GetHna () const
-  {
-    NS_ASSERT (m_messageType == HNA_MESSAGE);
-    return m_message.hna;
-  }
-
-
-};
-
-
-static inline std::ostream& operator<< (std::ostream& os, const PacketHeader & packet)
-{
-  packet.Print (os);
-  return os;
+  return NULL;
 }
 
-static inline std::ostream& operator<< (std::ostream& os, const MessageHeader & message)
+void
+SplitState::EraseMprSelectorTuple (const MprSelectorTuple &tuple)
 {
-  message.Print (os);
-  return os;
+  for (MprSelectorSet::iterator it = m_mprSelectorSet.begin ();
+       it != m_mprSelectorSet.end (); it++)
+    {
+      if (*it == tuple)
+        {
+          m_mprSelectorSet.erase (it);
+          break;
+        }
+    }
 }
 
-typedef std::vector<MessageHeader> MessageList;
-
-static inline std::ostream& operator<< (std::ostream& os, const MessageList & messages)
+void
+SplitState::EraseMprSelectorTuples (const Ipv4Address &mainAddr)
 {
+  for (MprSelectorSet::iterator it = m_mprSelectorSet.begin ();
+       it != m_mprSelectorSet.end (); )
+    {
+      if (it->mainAddr == mainAddr)
+        {
+          it = m_mprSelectorSet.erase (it);
+        }
+      else
+        {
+          it++;
+        }
+    }
+}
+
+void
+SplitState::InsertMprSelectorTuple (MprSelectorTuple const &tuple)
+{
+  m_mprSelectorSet.push_back (tuple);
+}
+
+std::string
+SplitState::PrintMprSelectorSet () const
+{
+  std::ostringstream os;
   os << "[";
-  for (std::vector<MessageHeader>::const_iterator messageIter = messages.begin ();
-       messageIter != messages.end (); messageIter++)
+  for (MprSelectorSet::const_iterator iter = m_mprSelectorSet.begin ();
+       iter != m_mprSelectorSet.end (); iter++)
     {
-      messageIter->Print (os);
-      if (messageIter + 1 != messages.end ())
+      MprSelectorSet::const_iterator next = iter;
+      next++;
+      os << iter->mainAddr;
+      if (next != m_mprSelectorSet.end ())
         {
           os << ", ";
         }
     }
   os << "]";
-  return os;
+  return os.str ();
 }
 
+
+/********** Neighbor Set Manipulation **********/
+
+NeighborTuple*
+SplitState::FindNeighborTuple (Ipv4Address const &mainAddr)
+{
+  for (NeighborSet::iterator it = m_neighborSet.begin ();
+       it != m_neighborSet.end (); it++)
+    {
+      if (it->neighborMainAddr == mainAddr)
+        {
+          return &(*it);
+        }
+    }
+  return NULL;
+}
+
+const NeighborTuple*
+SplitState::FindSymNeighborTuple (Ipv4Address const &mainAddr) const
+{
+  for (NeighborSet::const_iterator it = m_neighborSet.begin ();
+       it != m_neighborSet.end (); it++)
+    {
+      if (it->neighborMainAddr == mainAddr && it->status == NeighborTuple::STATUS_SYM)
+        {
+          return &(*it);
+        }
+    }
+  return NULL;
+}
+
+NeighborTuple*
+SplitState::FindNeighborTuple (Ipv4Address const &mainAddr, uint8_t willingness)
+{
+  for (NeighborSet::iterator it = m_neighborSet.begin ();
+       it != m_neighborSet.end (); it++)
+    {
+      if (it->neighborMainAddr == mainAddr && it->willingness == willingness)
+        {
+          return &(*it);
+        }
+    }
+  return NULL;
+}
+
+void
+SplitState::EraseNeighborTuple (const NeighborTuple &tuple)
+{
+  for (NeighborSet::iterator it = m_neighborSet.begin ();
+       it != m_neighborSet.end (); it++)
+    {
+      if (*it == tuple)
+        {
+          m_neighborSet.erase (it);
+          break;
+        }
+    }
+}
+
+void
+SplitState::EraseNeighborTuple (const Ipv4Address &mainAddr)
+{
+  for (NeighborSet::iterator it = m_neighborSet.begin ();
+       it != m_neighborSet.end (); it++)
+    {
+      if (it->neighborMainAddr == mainAddr)
+        {
+          it = m_neighborSet.erase (it);
+          break;
+        }
+    }
+}
+
+void
+SplitState::InsertNeighborTuple (NeighborTuple const &tuple)
+{
+  for (NeighborSet::iterator it = m_neighborSet.begin ();
+       it != m_neighborSet.end (); it++)
+    {
+      if (it->neighborMainAddr == tuple.neighborMainAddr)
+        {
+          // Update it
+          *it = tuple;
+          return;
+        }
+    }
+  m_neighborSet.push_back (tuple);
+}
+
+/********** Neighbor 2 Hop Set Manipulation **********/
+
+TwoHopNeighborTuple*
+SplitState::FindTwoHopNeighborTuple (Ipv4Address const &neighborMainAddr,
+                                    Ipv4Address const &twoHopNeighborAddr)
+{
+  for (TwoHopNeighborSet::iterator it = m_twoHopNeighborSet.begin ();
+       it != m_twoHopNeighborSet.end (); it++)
+    {
+      if (it->neighborMainAddr == neighborMainAddr
+          && it->twoHopNeighborAddr == twoHopNeighborAddr)
+        {
+          return &(*it);
+        }
+    }
+  return NULL;
+}
+
+void
+SplitState::EraseTwoHopNeighborTuple (const TwoHopNeighborTuple &tuple)
+{
+  for (TwoHopNeighborSet::iterator it = m_twoHopNeighborSet.begin ();
+       it != m_twoHopNeighborSet.end (); it++)
+    {
+      if (*it == tuple)
+        {
+          m_twoHopNeighborSet.erase (it);
+          break;
+        }
+    }
+}
+
+void
+SplitState::EraseTwoHopNeighborTuples (const Ipv4Address &neighborMainAddr,
+                                      const Ipv4Address &twoHopNeighborAddr)
+{
+  for (TwoHopNeighborSet::iterator it = m_twoHopNeighborSet.begin ();
+       it != m_twoHopNeighborSet.end (); )
+    {
+      if (it->neighborMainAddr == neighborMainAddr
+          && it->twoHopNeighborAddr == twoHopNeighborAddr)
+        {
+          it = m_twoHopNeighborSet.erase (it);
+        }
+      else
+        {
+          it++;
+        }
+    }
+}
+
+void
+SplitState::EraseTwoHopNeighborTuples (const Ipv4Address &neighborMainAddr)
+{
+  for (TwoHopNeighborSet::iterator it = m_twoHopNeighborSet.begin ();
+       it != m_twoHopNeighborSet.end (); )
+    {
+      if (it->neighborMainAddr == neighborMainAddr)
+        {
+          it = m_twoHopNeighborSet.erase (it);
+        }
+      else
+        {
+          it++;
+        }
+    }
+}
+
+void
+SplitState::InsertTwoHopNeighborTuple (TwoHopNeighborTuple const &tuple)
+{
+  m_twoHopNeighborSet.push_back (tuple);
+}
+
+/********** MPR Set Manipulation **********/
+
+bool
+SplitState::FindMprAddress (Ipv4Address const &addr)
+{
+  MprSet::iterator it = m_mprSet.find (addr);
+  return (it != m_mprSet.end ());
+}
+
+void
+SplitState::SetMprSet (MprSet mprSet)
+{
+  m_mprSet = mprSet;
+}
+MprSet
+SplitState::GetMprSet () const
+{
+  return m_mprSet;
+}
+
+/********** Duplicate Set Manipulation **********/
+
+DuplicateTuple*
+SplitState::FindDuplicateTuple (Ipv4Address const &addr, uint16_t sequenceNumber)
+{
+  for (DuplicateSet::iterator it = m_duplicateSet.begin ();
+       it != m_duplicateSet.end (); it++)
+    {
+      if (it->address == addr && it->sequenceNumber == sequenceNumber)
+        {
+          return &(*it);
+        }
+    }
+  return NULL;
+}
+
+void
+SplitState::EraseDuplicateTuple (const DuplicateTuple &tuple)
+{
+  for (DuplicateSet::iterator it = m_duplicateSet.begin ();
+       it != m_duplicateSet.end (); it++)
+    {
+      if (*it == tuple)
+        {
+          m_duplicateSet.erase (it);
+          break;
+        }
+    }
+}
+
+void
+SplitState::InsertDuplicateTuple (DuplicateTuple const &tuple)
+{
+  m_duplicateSet.push_back (tuple);
+}
+
+/********** Link Set Manipulation **********/
+
+LinkTuple*
+SplitState::FindLinkTuple (Ipv4Address const & ifaceAddr)
+{
+  for (LinkSet::iterator it = m_linkSet.begin ();
+       it != m_linkSet.end (); it++)
+    {
+      if (it->neighborIfaceAddr == ifaceAddr)
+        {
+          return &(*it);
+        }
+    }
+  return NULL;
+}
+
+LinkTuple*
+SplitState::FindSymLinkTuple (Ipv4Address const &ifaceAddr, Time now)
+{
+  for (LinkSet::iterator it = m_linkSet.begin ();
+       it != m_linkSet.end (); it++)
+    {
+      if (it->neighborIfaceAddr == ifaceAddr)
+        {
+          if (it->symTime > now)
+            {
+              return &(*it);
+            }
+          else
+            {
+              break;
+            }
+        }
+    }
+  return NULL;
+}
+
+void
+SplitState::EraseLinkTuple (const LinkTuple &tuple)
+{
+  for (LinkSet::iterator it = m_linkSet.begin ();
+       it != m_linkSet.end (); it++)
+    {
+      if (*it == tuple)
+        {
+          m_linkSet.erase (it);
+          break;
+        }
+    }
+}
+
+LinkTuple&
+SplitState::InsertLinkTuple (LinkTuple const &tuple)
+{
+  m_linkSet.push_back (tuple);
+  return m_linkSet.back ();
+}
+
+/********** Topology Set Manipulation **********/
+
+TopologyTuple*
+SplitState::FindTopologyTuple (Ipv4Address const &destAddr,
+                              Ipv4Address const &lastAddr)
+{
+  for (TopologySet::iterator it = m_topologySet.begin ();
+       it != m_topologySet.end (); it++)
+    {
+      if (it->destAddr == destAddr && it->lastAddr == lastAddr)
+        {
+          return &(*it);
+        }
+    }
+  return NULL;
+}
+
+TopologyTuple*
+SplitState::FindNewerTopologyTuple (Ipv4Address const & lastAddr, uint16_t ansn)
+{
+  for (TopologySet::iterator it = m_topologySet.begin ();
+       it != m_topologySet.end (); it++)
+    {
+      if (it->lastAddr == lastAddr && it->sequenceNumber > ansn)
+        {
+          return &(*it);
+        }
+    }
+  return NULL;
+}
+
+void
+SplitState::EraseTopologyTuple (const TopologyTuple &tuple)
+{
+  for (TopologySet::iterator it = m_topologySet.begin ();
+       it != m_topologySet.end (); it++)
+    {
+      if (*it == tuple)
+        {
+          m_topologySet.erase (it);
+          break;
+        }
+    }
+}
+
+void
+SplitState::EraseOlderTopologyTuples (const Ipv4Address &lastAddr, uint16_t ansn)
+{
+  for (TopologySet::iterator it = m_topologySet.begin ();
+       it != m_topologySet.end (); )
+    {
+      if (it->lastAddr == lastAddr && it->sequenceNumber < ansn)
+        {
+          it = m_topologySet.erase (it);
+        }
+      else
+        {
+          it++;
+        }
+    }
+}
+
+void
+SplitState::InsertTopologyTuple (TopologyTuple const &tuple)
+{
+  m_topologySet.push_back (tuple);
+}
+
+/********** Interface Association Set Manipulation **********/
+
+IfaceAssocTuple*
+SplitState::FindIfaceAssocTuple (Ipv4Address const &ifaceAddr)
+{
+  for (IfaceAssocSet::iterator it = m_ifaceAssocSet.begin ();
+       it != m_ifaceAssocSet.end (); it++)
+    {
+      if (it->ifaceAddr == ifaceAddr)
+        {
+          return &(*it);
+        }
+    }
+  return NULL;
+}
+
+const IfaceAssocTuple*
+SplitState::FindIfaceAssocTuple (Ipv4Address const &ifaceAddr) const
+{
+  for (IfaceAssocSet::const_iterator it = m_ifaceAssocSet.begin ();
+       it != m_ifaceAssocSet.end (); it++)
+    {
+      if (it->ifaceAddr == ifaceAddr)
+        {
+          return &(*it);
+        }
+    }
+  return NULL;
+}
+
+void
+SplitState::EraseIfaceAssocTuple (const IfaceAssocTuple &tuple)
+{
+  for (IfaceAssocSet::iterator it = m_ifaceAssocSet.begin ();
+       it != m_ifaceAssocSet.end (); it++)
+    {
+      if (*it == tuple)
+        {
+          m_ifaceAssocSet.erase (it);
+          break;
+        }
+    }
+}
+
+void
+SplitState::InsertIfaceAssocTuple (const IfaceAssocTuple &tuple)
+{
+  m_ifaceAssocSet.push_back (tuple);
+}
+
+std::vector<Ipv4Address>
+SplitState::FindNeighborInterfaces (const Ipv4Address &neighborMainAddr) const
+{
+  std::vector<Ipv4Address> retval;
+  for (IfaceAssocSet::const_iterator it = m_ifaceAssocSet.begin ();
+       it != m_ifaceAssocSet.end (); it++)
+    {
+      if (it->mainAddr == neighborMainAddr)
+        {
+          retval.push_back (it->ifaceAddr);
+        }
+    }
+  return retval;
+}
+
+/********** Host-Network Association Set Manipulation **********/
+
+AssociationTuple*
+SplitState::FindAssociationTuple (const Ipv4Address &gatewayAddr, const Ipv4Address &networkAddr, const Ipv4Mask &netmask)
+{
+  for (AssociationSet::iterator it = m_associationSet.begin ();
+       it != m_associationSet.end (); it++)
+    {
+      if (it->gatewayAddr == gatewayAddr and it->networkAddr == networkAddr and it->netmask == netmask)
+        {
+          return &(*it);
+        }
+    }
+  return NULL;
+}
+
+void
+SplitState::EraseAssociationTuple (const AssociationTuple &tuple)
+{
+  for (AssociationSet::iterator it = m_associationSet.begin ();
+       it != m_associationSet.end (); it++)
+    {
+      if (*it == tuple)
+        {
+          m_associationSet.erase (it);
+          break;
+        }
+    }
+}
+
+void
+SplitState::InsertAssociationTuple (const AssociationTuple &tuple)
+{
+  m_associationSet.push_back (tuple);
+}
+
+void
+SplitState::EraseAssociation (const Association &tuple)
+{
+  for (Associations::iterator it = m_associations.begin ();
+       it != m_associations.end (); it++)
+    {
+      if (*it == tuple)
+        {
+          m_associations.erase (it);
+          break;
+        }
+    }
+}
+
+void
+SplitState::InsertAssociation (const Association &tuple)
+{
+  m_associations.push_back (tuple);
+}
+
+
+/********** History Set Manipulation **********/
+
+bool
+SplitState::InsertHistTuple(const HistTuple& tuple, uint32_t histSize)
+{
+    m_hist.push_back(tuple);
+    if (GetStackSize() > histSize) {
+        m_hist.pop_front();
+        return true;
+    }
+    return false;
+}
+
+double
+SplitState::GetHistPercentage(const Ipv4Address& neighborAddr)
+{
+    double counter = 0.0;
+    for (History::const_iterator it = m_hist.begin ();
+       it != m_hist.end (); it++)
+    {   
+        if (it->ifaceAddr == neighborAddr){
+            counter = counter + 1.0;
+        }
+    }
+    if (GetStackSize() == 0) return 0.0;
+    double returnValue = 100.0 * (counter / (double) GetStackSize());
+    
+    return returnValue;
+}
+
+void
+SplitState::UpdateHistStack(uint32_t size){
+  if (m_hist.size() > size){
+      while (m_hist.size() > size)
+          m_hist.pop_front();
+  }
+}
+
+uint32_t
+SplitState::GetStackSize()
+{
+  return (uint32_t) m_hist.size();
+}
 
 }
 }  // namespace split, ns3
-
-#endif /* SPLIT_HEADER_H */
-
