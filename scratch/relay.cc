@@ -258,7 +258,8 @@ main (int argc, char *argv[])
   GlobalValue::Bind ("ChecksumEnabled", BooleanValue (true));
 
   int          m_run              = 0;
-  double       m_totalTime        = 2000.0;
+  double       m_totalTime        = 3000.0;
+  uint32_t     m_histSize         = 10000;
   std::string  m_routing          = "split";
   bool         m_pcap             = false;
   double       m_charge           = 150.0; //6300.0; for 4 x AA
@@ -275,6 +276,7 @@ main (int argc, char *argv[])
   CommandLine cmd;
   cmd.AddValue ("id",          "Experiment ID, to customize output file [1]", m_run);
   cmd.AddValue ("time",        "Simulation time, seconds [1000 s]", m_totalTime);
+  cmd.AddValue ("hist",        "Size of the history stack. [10000]", m_histSize);
   cmd.AddValue ("charge",      "Initial State of Charge [150 Coulombs]", m_charge);
   cmd.AddValue ("routing",     "Routing protocol to use, olsr default. [aodv/dsdv/olsr/olsr-etx/split]", m_routing);
   cmd.AddValue ("pcap",        "Enable PCAP traces on interfaces. [0]", m_pcap);
@@ -313,6 +315,7 @@ main (int argc, char *argv[])
       internetStackHelper.SetRoutingHelper (routing);
   }else if (m_routing == "split"){
       SplitHelper routing;
+      routing.Set("HistorySize", UintegerValue(m_histSize));
       internetStackHelper.SetRoutingHelper (routing);
   }
 
