@@ -188,6 +188,10 @@ RoutingProtocol::GetTypeId (void)
                    TimeValue (Seconds (5)),
                    MakeTimeAccessor (&RoutingProtocol::m_hnaInterval),
                    MakeTimeChecker ())
+    .AddAttribute ("HistorySize", "Maximum size of history stack.  Default is 10000.",
+                   UintegerValue (10000),
+                   MakeUintegerAccessor (&RoutingProtocol::m_histSize),
+                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("Willingness", "Willingness of a node to carry and forward traffic for other nodes.",
                    EnumValue (SPLIT_WILL_DEFAULT),
                    MakeEnumAccessor (&RoutingProtocol::m_willingness),
@@ -3018,7 +3022,7 @@ RoutingProtocol::RouteOutput (Ptr<Packet> p, const Ipv4Header &header, Ptr<NetDe
   HistTuple hist;
   hist.ifaceAddr = rtentry->GetGateway();
   hist.tos = header.GetTos();
-  m_state.InsertHistTuple(hist);
+  m_state.InsertHistTuple(hist, m_histSize);
 
   LinkTuple *link_tuple = m_state.FindLinkTuple (entry2.nextAddr);
 
@@ -3152,7 +3156,7 @@ bool RoutingProtocol::RouteInput  (Ptr<const Packet> p,
       HistTuple hist;
       hist.ifaceAddr = entry2.nextAddr;
       hist.tos = header.GetTos();
-      m_state.InsertHistTuple(hist);
+      m_state.InsertHistTuple(hist, m_histSize);
 
       LinkTuple *link_tuple = m_state.FindLinkTuple (entry2.nextAddr);
 
