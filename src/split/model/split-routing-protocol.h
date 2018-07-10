@@ -237,6 +237,8 @@ private:
   SplitState m_state;  //!< Internal state with all needed data structs.
   Ptr<Ipv4> m_ipv4;   //!< IPv4 object the routing is linked to.
 
+  uint32_t m_histSize;      //!< Maximum size of the history stack.
+
   /**
    * \brief Clears the routing table and frees the memory assigned to each one of its entries.
    */
@@ -819,7 +821,21 @@ private:
   //compute new link cost
   double NewMetric(double normalized_datarate, double rlq, double hist_percentage, double energy_percentage);
   
-
+public:
+  uint32_t
+  GetHistSize() {
+    return m_histSize;
+  }
+  bool
+  SetHistSize(uint32_t size) {
+    if (size >= 1){
+      m_histSize = size;
+      m_state.UpdateHistStack(size);
+      return true;
+    }
+    return false;
+  }
+  
 };
 
 }
