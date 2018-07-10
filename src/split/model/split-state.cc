@@ -575,15 +575,13 @@ SplitState::InsertAssociation (const Association &tuple)
 /********** History Set Manipulation **********/
 
 bool
-SplitState::InsertHistTuple(const HistTuple& tuple)
+SplitState::InsertHistTuple(const HistTuple& tuple, uint32_t histSize)
 {
     m_hist.push_back(tuple);
-    if (GetHistSize() > m_histSize) {
+    if (GetStackSize() > histSize) {
         m_hist.pop_front();
-//        std::cout << "T" << std::endl;
         return true;
     }
-//    std::cout << m_hist.size() << std::endl;
     return false;
 }
 
@@ -598,29 +596,24 @@ SplitState::GetHistPercentage(const Ipv4Address& neighborAddr)
             counter = counter + 1.0;
         }
     }
-    
-    double returnValue = 100.0 * (counter / GetHistSize());
+    if (GetStackSize() == 0) return 0.0;
+    double returnValue = 100.0 * (counter / (double) GetStackSize());
     
     return returnValue;
 }
 
-bool
-SplitState::SetHistSize(double size){
-    if (size >= 1.0){
-        m_histSize = size;
-        if (m_hist.size() > size){
-            while (m_hist.size() > size)
-                m_hist.pop_front();
-        }
-        return true;
-    }
-    return false;
+void
+SplitState::UpdateHistStack(uint32_t size){
+  if (m_hist.size() > size){
+      while (m_hist.size() > size)
+          m_hist.pop_front();
+  }
 }
 
-double
-SplitState::GetHistSize()
+uint32_t
+SplitState::GetStackSize()
 {
-    return m_histSize;
+  return (uint32_t) m_hist.size();
 }
 
 }
