@@ -109,7 +109,6 @@ EtxValToEmf (double etxval)
     for (b = 0; (etxval/ETX_C) >= (1 << b); ++b)
         ;
         
-//    std::cout << etxval << " " << ETX_C << " " << (etxval/ETX_C) << " : " << (1 << b) << " : " << (1 << b) << std::endl;
     NS_ASSERT ((etxval/ETX_C) < (1 << b));
     b--;
     NS_ASSERT ((etxval/ETX_C) >= (1 << b));

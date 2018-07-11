@@ -278,7 +278,7 @@ main (int argc, char *argv[])
   uint32_t     m_maxBytes           = 1000000000; // 1 GB
 
   uint16_t     sinkPort           = 8000;
-//   uint32_t     packetSize         = 1024; // bytes
+  uint32_t     packetSize         = 1024; // bytes
   std::string dataRate("11Mb/s");
   
   std::string deviceName ("wlan0");
@@ -296,7 +296,8 @@ main (int argc, char *argv[])
   cmd.AddValue ("id",          "Experiment ID, to customize output file [1]", m_run);
   cmd.AddValue ("time",        "Simulation time, seconds [1000 s]", m_totalTime);
   cmd.AddValue ("hist",        "Size of the history stack. [10000]", m_histSize);
-  cmd.AddValue ("bytes",        "Amount of data to send (0 unlimited) [default 1 GB = 1000000000 B]", m_maxBytes);
+  cmd.AddValue ("bytes",       "Amount of data to send (0 unlimited) [default 1 GB = 1000000000 B]", m_maxBytes);
+  cmd.AddValue ("size",        "Size of the packet to be transmitted [default = 1024 bytes]", packetSize);
   cmd.AddValue ("charge",      "Initial State of Charge [150 Coulombs]", m_charge);
   cmd.AddValue ("routing",     "Routing protocol to use, olsr default. [aodv/dsdv/olsr/etx/split]", m_routing);
   cmd.AddValue ("pcap",        "Enable PCAP traces on interfaces. [0]", m_pcap);
