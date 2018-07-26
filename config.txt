@@ -1,5 +1,5 @@
-10:./waf --run="server --time=630 --charge=100.0 --hist=10000 --routing=olsr" > server.log 2>&1
-13:./waf --run="relay  --time=600 --charge=95.0 --hist=10000 --routing=olsr" > relay13.log 2>&1
-14:./waf --run="relay  --time=600 --charge=95.0 --hist=10000 --routing=olsr" > relay14.log 2>&1
-44:./waf --run="relay  --time=600 --charge=95.0 --hist=10000 --routing=olsr" > relay44.log 2>&1
-07:./waf --run="client --time=500 --charge=80.0 --hist=10000 --routing=olsr" > client.log 2>&1
+10:./waf --run="server --time=630 --charge=100.0 --hist=10000 --routing=split" > server.log 2>&1
+13:./waf --run="relay  --time=600 --charge=95.0 --hist=10000 --routing=split" > relay13.log 2>&1
+14:./waf --run="relay  --time=600 --charge=95.0 --hist=10000 --routing=split" > relay14.log 2>&1
+44:./waf --run="relay  --time=600 --charge=95.0 --hist=10000 --routing=split" > relay44.log 2>&1
+07:./waf --run="client --time=500 --charge=80.0 --hist=10000 --routing=split" > client.log 2>&1
