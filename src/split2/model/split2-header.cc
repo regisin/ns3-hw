@@ -101,19 +101,19 @@ EmfToSeconds (uint8_t split2Format)
 
 // --------------------------- START
 uint8_t
-EtxValToEmf (double etxval)
+EnergyValToEmf (double energyval)
 {
     
     int a, b = 0;
         
-    for (b = 0; (etxval/ETX_C) >= (1 << b); ++b)
+    for (b = 0; (energyval/ETX_C) >= (1 << b); ++b)
         ;
         
-    NS_ASSERT ((etxval/ETX_C) < (1 << b));
+    NS_ASSERT ((energyval/ETX_C) < (1 << b));
     b--;
-    NS_ASSERT ((etxval/ETX_C) >= (1 << b));
+    NS_ASSERT ((energyval/ETX_C) >= (1 << b));
         
-    double tmp = 8*(etxval/(ETX_C*(1<<b))-1);
+    double tmp = 8*(energyval/(ETX_C*(1<<b))-1);
     
     a = (int) std::ceil (tmp);
     
@@ -131,7 +131,7 @@ EtxValToEmf (double etxval)
 }
 
 double
-EmfToEtxVal (uint8_t split2Format)
+EmfToEnergyVal (uint8_t split2Format)
 {
     
     int b = (split2Format >> 3);
@@ -416,10 +416,9 @@ MessageHeader::Hello::Serialize (Buffer::Iterator start) const
       // from the beginning of the "Link Code" field and until the
       // next "Link Code" field (or - if there are no more link types
       // - the end of the message).
-      i.WriteHtonU16 (6 + lm.neighborInterfaceAddresses.size () * IPV4_ADDRESS_SIZE); // ------------- 4 if not using ETX
-
-      i.WriteU8 (lm.RLQ); // ------------- New
-      i.WriteU8 (lm.ETX); // ------------- New
+      i.WriteHtonU16 (6 + lm.neighborInterfaceAddresses.size () * IPV4_ADDRESS_SIZE); // ------------- 4 if not using energy
+      
+      i.WriteU8 (lm.energy); // ------------- New
       
       for (std::vector<Ipv4Address>::const_iterator neigh_iter = lm.neighborInterfaceAddresses.begin ();
            neigh_iter != lm.neighborInterfaceAddresses.end (); neigh_iter++)
@@ -454,8 +453,7 @@ MessageHeader::Hello::Deserialize (Buffer::Iterator start, uint32_t messageSize)
       i.ReadU8 (); // Reserved
       uint16_t lmSize = i.ReadNtohU16 ();
       
-      lm.RLQ = i.ReadU8 (); // ------------- New
-      lm.ETX = i.ReadU8 (); // ------------- New
+      lm.energy = i.ReadU8 (); // ------------- New
       
       NS_ASSERT ((lmSize - 6) % IPV4_ADDRESS_SIZE == 0);
       for (int n = (lmSize - 6) / IPV4_ADDRESS_SIZE; n; --n)
@@ -496,7 +494,7 @@ MessageHeader::Tc::Serialize (Buffer::Iterator start) const
   for (uint8_t n = 0; n < this->neighborAddresses.size (); n++)
   {
     i.WriteHtonU32 (this->neighborAddresses.at(n).Get ());
-    i.WriteU8 (this->ETX.at(n));
+    i.WriteU8 (this->energy.at(n));
   }
 }
 
@@ -507,7 +505,7 @@ MessageHeader::Tc::Deserialize (Buffer::Iterator start, uint32_t messageSize)
 
   this->neighborAddresses.clear ();
   
-  this->ETX.clear (); // ------------- NEW
+  this->energy.clear (); // ------------- NEW
   
   NS_ASSERT (messageSize >= 4);
 
@@ -517,11 +515,11 @@ MessageHeader::Tc::Deserialize (Buffer::Iterator start, uint32_t messageSize)
   NS_ASSERT ((messageSize - 4) % (IPV4_ADDRESS_SIZE + 1) == 0);  // ------------- remove +1 when not ETX
   int numAddresses = (messageSize - 4) / (IPV4_ADDRESS_SIZE +1); // ------------- remove +1 when not ETX
   this->neighborAddresses.clear ();
-  this->ETX.clear();  // ------------- NEW
+  this->energy.clear();  // ------------- NEW
   for (int n = 0; n < numAddresses; ++n)
     {
       this->neighborAddresses.push_back (Ipv4Address (i.ReadNtohU32 ()));
-      this->ETX.push_back(i.ReadU8());  // ------------- NEW
+      this->energy.push_back(i.ReadU8());  // ------------- NEW
       
     }
 

@@ -29,7 +29,6 @@
 #include "ns3/ipv4-address.h"
 #include "ns3/nstime.h"
 
-#define SPLIT2_UNDEFINED_LQ 0         // -------------------- NEW
 #define SPLIT2_MAXIMUM_METRIC 65535   // -------------------- NEW
 
 namespace ns3 {
@@ -39,8 +38,8 @@ double EmfToSeconds (uint8_t emf);
 uint8_t SecondsToEmf (double seconds);
 
  // ------------- START
-uint8_t EtxValToEmf (double etxval);
-double EmfToEtxVal (uint8_t split2Format);
+uint8_t EnergyValToEmf (double energyval);
+double EmfToEnergyVal (uint8_t split2Format);
  // ------------- END
 
 /**
@@ -393,33 +392,19 @@ public:
       std::vector<Ipv4Address> neighborInterfaceAddresses;  //!< Neighbor interface address container.
       
       // ------------------------------------- START
-      uint8_t RLQ;
-      uint8_t ETX;
-        
-      void SetETX (double etxval)
+      uint8_t energy;
+      
+      void SetEnergy (double energyval)
       {
-        this->ETX = EtxValToEmf (etxval);
+        this->energy = EnergyValToEmf (energyval);
       }
         
-      double GetETX () const
+      double GetEnergy () const
       {
-        if (EmfToEtxVal (this->ETX) <= 0) {
+        if (EmfToEnergyVal (this->energy) <= 0) {
           return SPLIT2_MAXIMUM_METRIC;
         }
-        return  EmfToEtxVal (this->ETX);
-      }
-        
-      void SetRLQ (double etxval)
-      {
-        this->RLQ = EtxValToEmf (etxval);
-      }
-        
-      double GetRLQ () const
-      {
-        if (EmfToEtxVal (this->RLQ) <= 0) {
-          return SPLIT2_UNDEFINED_LQ;
-        }
-        return  EmfToEtxVal (this->RLQ);
+        return  EmfToEnergyVal (this->energy);
       }
       // ------------------------------------- END
       
@@ -502,14 +487,14 @@ public:
     uint16_t ansn;  //!< Advertised Neighbor Sequence Number.
 
     // -------------------------------------- START
-    std::vector<uint8_t> ETX;
-    void SetETX (double etxval)
+    std::vector<uint8_t> energy;
+    void SetEnergy (double energyval)
     {
-      this->ETX.push_back (EtxValToEmf (etxval));
+      this->energy.push_back (EnergyValToEmf (energyval));
     }
-    double GetETX (uint8_t i) const
+    double GetEnergy (uint8_t i) const
     {
-      return  EmfToEtxVal (this->ETX.at(i));
+      return  EmfToEnergyVal (this->energy.at(i));
     }
     // -------------------------------------- END
     

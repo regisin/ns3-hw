@@ -237,8 +237,6 @@ private:
   Split2State m_state;  //!< Internal state with all needed data structs.
   Ptr<Ipv4> m_ipv4;   //!< IPv4 object the routing is linked to.
 
-  uint32_t m_histSize;      //!< Maximum size of the history stack.
-
   /**
    * \brief Clears the routing table and frees the memory assigned to each one of its entries.
    */
@@ -497,7 +495,7 @@ private:
    *
    * \param neighborIfaceAddr The tuple neighbor interface address.
    */
-  void EtxTimerExpire (Ipv4Address neighborIfaceAddr);
+  void EnergyTimerExpire (Ipv4Address neighborIfaceAddr);
   
   // -------------------------------------------------------------------------- END
   
@@ -819,22 +817,7 @@ private:
   Ptr<NetDevice> GetNetDevice(const Ipv4Address &addr);
   
   //compute new link cost
-  double NewMetric(double normalized_datarate, double rlq, double hist_percentage, double energy_percentage);
-  
-public:
-  uint32_t
-  GetHistSize() {
-    return m_histSize;
-  }
-  bool
-  SetHistSize(uint32_t size) {
-    if (size >= 1){
-      m_histSize = size;
-      m_state.UpdateHistStack(size);
-      return true;
-    }
-    return false;
-  }
+  double NewMetric(double energy_percentage);
   
 };
 

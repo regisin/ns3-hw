@@ -571,50 +571,5 @@ Split2State::InsertAssociation (const Association &tuple)
   m_associations.push_back (tuple);
 }
 
-
-/********** History Set Manipulation **********/
-
-bool
-Split2State::InsertHistTuple(const HistTuple& tuple, uint32_t histSize)
-{
-    m_hist.push_back(tuple);
-    if (GetStackSize() > histSize) {
-        m_hist.pop_front();
-        return true;
-    }
-    return false;
-}
-
-double
-Split2State::GetHistPercentage(const Ipv4Address& neighborAddr)
-{
-    double counter = 0.0;
-    for (History::const_iterator it = m_hist.begin ();
-       it != m_hist.end (); it++)
-    {   
-        if (it->ifaceAddr == neighborAddr){
-            counter = counter + 1.0;
-        }
-    }
-    if (GetStackSize() == 0) return 0.0;
-    double returnValue = 100.0 * (counter / (double) GetStackSize());
-    
-    return returnValue;
-}
-
-void
-Split2State::UpdateHistStack(uint32_t size){
-  if (m_hist.size() > size){
-      while (m_hist.size() > size)
-          m_hist.pop_front();
-  }
-}
-
-uint32_t
-Split2State::GetStackSize()
-{
-  return (uint32_t) m_hist.size();
-}
-
 }
 }  // namespace split2, ns3

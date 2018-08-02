@@ -29,7 +29,6 @@
 
 #include <set>
 #include <vector>
-#include <deque>
 
 #include "ns3/ipv4-address.h"
 #include "ns3/nstime.h"
@@ -82,13 +81,7 @@ struct LinkTuple
   Time time;
   
   // ---------------------------- START
-  double DLQ;
-  double RLQ;
-  double ETX;
-  int numHelloReceived;
-  int numHelloSupposed;
-  uint16_t lastPackSeqNum;
-  uint16_t initPackSeqNum;
+  double energy;
   // ---------------------------- START
 };
 
@@ -107,13 +100,7 @@ operator << (std::ostream &os, const LinkTuple &tuple)
      << ", symTime=" << tuple.symTime
      << ", asymTime=" << tuple.asymTime
      << ", expTime=" << tuple.time
-     << ", DLQ=" << tuple.DLQ // ------------------------------ NEW
-     << ", RLQ=" << tuple.RLQ // ------------------------------ NEW
-     << ", ETX=" << tuple.ETX // ------------------------------ NEW
-     << ", numHelloReceived=" << tuple.numHelloReceived // ------------------------------ NEW
-     << ", numHelloSupposed=" << tuple.numHelloSupposed // ------------------------------ NEW
-     << ", lastPackSeqNum=" << tuple.lastPackSeqNum // ------------------------------ NEW
-     << ", initPackSeqNum=" << tuple.initPackSeqNum // ------------------------------ NEW
+     << ", Energy=" << tuple.energy // ------------------------------ NEW
      << ")";
   return os;
 }
@@ -162,7 +149,7 @@ struct TwoHopNeighborTuple
   /// Time at which this tuple expires and must be removed.
   Time expirationTime; // previously called 'time_'
   
-  double ETX; // ------------------------------ NEW
+  double energy; // ------------------------------ NEW
 };
 
 static inline std::ostream&
@@ -171,7 +158,7 @@ operator << (std::ostream &os, const TwoHopNeighborTuple &tuple)
   os << "TwoHopNeighborTuple(neighborMainAddr=" << tuple.neighborMainAddr
      << ", twoHopNeighborAddr=" << tuple.twoHopNeighborAddr
      << ", expirationTime=" << tuple.expirationTime
-     << ", ETX=" << tuple.ETX // ------------------------------ NEW
+     << ", Energy=" << tuple.energy // ------------------------------ NEW
      << ")";
   return os;
 }
@@ -239,7 +226,7 @@ struct TopologyTuple
   /// Time at which this tuple expires and must be removed.
   Time expirationTime;
   
-  double ETX; // ------------------------------ NEW
+  double energy; // ------------------------------ NEW
 };
 
 static inline bool
@@ -257,7 +244,7 @@ operator << (std::ostream &os, const TopologyTuple &tuple)
      << ", lastAddr=" << tuple.lastAddr
      << ", sequenceNumber=" << (int) tuple.sequenceNumber
      << ", expirationTime=" << tuple.expirationTime
-     << ", ETX=" << tuple.ETX // ------------------------------ NEW
+     << ", Energy=" << tuple.energy // ------------------------------ NEW
      << ")";
   return os;
 }
@@ -319,34 +306,6 @@ operator << (std::ostream &os, const AssociationTuple &tuple)
   return os;
 }
 
-/// \ingroup split2
-/// History Entry Tuple.
-struct HistTuple
-{
-  /// Interface address of a neighbor node.
-  Ipv4Address ifaceAddr;
-  /// The type of service (DSCP) of this entry
-  uint8_t tos;
-  /// Time at which this tuple expires and must be removed.
-  Time time;
-};
-
-static inline bool
-operator == (const HistTuple &a, const HistTuple &b)
-{
-  return (a.ifaceAddr == b.ifaceAddr
-          && a.tos == b.tos);
-}
-
-static inline std::ostream&
-operator << (std::ostream &os, const HistTuple &tuple)
-{
-  os << "HistTuple(ifaceAddr=" << tuple.ifaceAddr
-     << ", tos=" << tuple.tos
-     << ", time=" << tuple.time << ")";
-  return os;
-}
-
 
 typedef std::set<Ipv4Address>                   MprSet; //!< MPR Set type.
 typedef std::vector<MprSelectorTuple>           MprSelectorSet; //!< MPR Selector Set type.
@@ -358,8 +317,6 @@ typedef std::vector<DuplicateTuple>             DuplicateSet; //!< Duplicate Set
 typedef std::vector<IfaceAssocTuple>            IfaceAssocSet; //!< Interface Association Set type.
 typedef std::vector<AssociationTuple>           AssociationSet; //!< Association Set type.
 typedef std::vector<Association>                Associations; //!< Association Set type.
-typedef std::deque<HistTuple>                   History; //!< History FIFO queue type.
-
 
 
 }

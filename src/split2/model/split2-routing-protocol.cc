@@ -145,13 +145,10 @@
 
 
 // ------------------------------------- START
-///Constants for  ETX Metrics
-#define SPLIT2_MAXIMUM_METRIC 65535
+///Constants for  energy Metrics
 #define SPLIT2_DEFAULT_METRIC 4096
-#define SPLIT2_UNDEFINED_LQ 0
-#define SPLIT2_ETX_SEQNO_RESTART_DETECTION 256
 
-#define SPLIT2_ETX_UPDATE_TIME   Time (7 * SPLIT2_REFRESH_INTERVAL)
+#define SPLIT2_ENERGY_UPDATE_TIME   Time (7 * SPLIT2_REFRESH_INTERVAL)
 // ------------------------------------- END
 
 
@@ -188,10 +185,6 @@ RoutingProtocol::GetTypeId (void)
                    TimeValue (Seconds (5)),
                    MakeTimeAccessor (&RoutingProtocol::m_hnaInterval),
                    MakeTimeChecker ())
-    .AddAttribute ("HistorySize", "Maximum size of history stack.  Default is 10000.",
-                   UintegerValue (10000),
-                   MakeUintegerAccessor (&RoutingProtocol::m_histSize),
-                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("Willingness", "Willingness of a node to carry and forward traffic for other nodes.",
                    EnumValue (SPLIT2_WILL_DEFAULT),
                    MakeEnumAccessor (&RoutingProtocol::m_willingness),
@@ -962,7 +955,7 @@ RoutingProtocol::RoutingTableComputation ()
                             link_tuple.neighborIfaceAddr,
                             link_tuple.localIfaceAddr,
                             1,
-                            link_tuple.ETX,
+                            link_tuple.energy,
                             false);
                   if (link_tuple.neighborIfaceAddr == nb_tuple.neighborMainAddr)
                     {
@@ -995,7 +988,7 @@ RoutingProtocol::RoutingTableComputation ()
                         lt->neighborIfaceAddr,
                         lt->localIfaceAddr,
                         1,
-                        lt->ETX,
+                        lt->energy,
                         false);
             }
         }
@@ -1070,7 +1063,7 @@ RoutingProtocol::RoutingTableComputation ()
                     entry.nextAddr,
                     entry.interface,
                     2,
-                    entry.metric + nb2hop_tuple.ETX,
+                    entry.metric + nb2hop_tuple.energy,
                     false);
         }
       else
@@ -1118,7 +1111,7 @@ RoutingProtocol::RoutingTableComputation ()
           if (topology_tuple.lastAddr == current_entry.destAddr)
           {
             uint32_t new_distance = current_entry.distance + 1;
-            uint32_t new_metric = current_entry.metric + topology_tuple.ETX;
+            uint32_t new_metric = current_entry.metric + topology_tuple.energy;
 
             RoutingTableEntry destAddrEntry;
             bool have_destAddrEntry = Lookup (topology_tuple.destAddr, destAddrEntry);
@@ -1247,7 +1240,7 @@ RoutingProtocol::RoutingTableComputation ()
         {
           addRoute = true;
         }
-      else if (gatewayEntryExists && m_hnaRoutingTable->GetMetric (routeIndex) > gatewayEntry.metric) // --------------------- metric for ETX, distance for olsr
+      else if (gatewayEntryExists && m_hnaRoutingTable->GetMetric (routeIndex) > gatewayEntry.metric) // --------------------- metric for energy, distance for olsr
         {
           m_hnaRoutingTable->RemoveRoute (routeIndex);
           addRoute = true;
@@ -1375,7 +1368,7 @@ RoutingProtocol::ProcessTc (const split2::MessageHeader &msg,
       if (topologyTuple != NULL)
         {
           topologyTuple->expirationTime = now + msg.GetVTime ();
-          topologyTuple->ETX = tc.GetETX(i);
+          topologyTuple->energy = tc.GetEnergy(i);
         }
       else
         {
@@ -1390,7 +1383,7 @@ RoutingProtocol::ProcessTc (const split2::MessageHeader &msg,
           topologyTuple.lastAddr = msg.GetOriginatorAddress ();
           topologyTuple.sequenceNumber = tc.ansn;
           topologyTuple.expirationTime = now + msg.GetVTime ();
-          topologyTuple.ETX = tc.GetETX(i); // ------------------------------------ NEW
+          topologyTuple.energy = tc.GetEnergy(i); // ------------------------------------ NEW
           AddTopologyTuple (topologyTuple);
 
           // Schedules topology tuple deletion
@@ -1780,8 +1773,7 @@ RoutingProtocol::SendHello ()
         (link_tuple->neighborIfaceAddr);
 
 
-      linkMessage.SetRLQ(link_tuple->RLQ); // ------------------------------------ NEW
-      linkMessage.SetETX(link_tuple->ETX); // ------------------------------------ NEW
+      linkMessage.SetEnergy(link_tuple->energy); // ------------------------------------ NEW
 
       std::vector<Ipv4Address> interfaces =
         m_state.FindNeighborInterfaces (link_tuple->neighborIfaceAddr);
@@ -1819,7 +1811,7 @@ RoutingProtocol::SendTc ()
       tc.neighborAddresses.push_back (mprsel_tuple->mainAddr);
 
       LinkTuple *link_tuple = m_state.FindLinkTuple (mprsel_tuple->mainAddr); // ------------------- NEW
-      tc.SetETX (link_tuple->ETX);                                               //------------------- NEW
+      tc.SetEnergy (link_tuple->energy);                                               //------------------- NEW
     }
 
 
@@ -1994,8 +1986,6 @@ RoutingProtocol::LinkSensing (const split2::MessageHeader &msg,
 {
   Time now = Simulator::Now ();
 
-  uint16_t seqno = msg.GetMessageSequenceNumber (); // -------------------------- NEW
-
   bool updated = false;
   bool created = false;
   NS_LOG_DEBUG ("@" << now.GetSeconds () << ": Split2 node " << m_mainAddress
@@ -2014,13 +2004,7 @@ RoutingProtocol::LinkSensing (const split2::MessageHeader &msg,
       newLinkTuple.time = now + msg.GetVTime ();
 
       // ----------------------------------------------------------------------- START
-      newLinkTuple.numHelloReceived = 1;
-      newLinkTuple.numHelloSupposed = 1;
-      newLinkTuple.lastPackSeqNum = seqno;
-      newLinkTuple.initPackSeqNum = seqno;
-      newLinkTuple.RLQ = 1;
-      newLinkTuple.DLQ = SPLIT2_UNDEFINED_LQ;
-      newLinkTuple.ETX = SPLIT2_DEFAULT_METRIC;
+      newLinkTuple.energy = SPLIT2_DEFAULT_METRIC;
       // ----------------------------------------------------------------------- END
 
       link_tuple = &m_state.InsertLinkTuple (newLinkTuple);
@@ -2030,19 +2014,6 @@ RoutingProtocol::LinkSensing (const split2::MessageHeader &msg,
   else
     {
       NS_LOG_LOGIC ("Existing link tuple already exists => will update it");
-
-      // ----------------------------------------------------------------------- START
-      link_tuple->numHelloReceived = link_tuple->numHelloReceived + 1;
-
-      uint16_t diff = seqno - link_tuple->lastPackSeqNum;
-      if (diff > SPLIT2_ETX_SEQNO_RESTART_DETECTION)
-      {
-        diff = 1;
-      }
-      link_tuple->numHelloSupposed = link_tuple->numHelloSupposed + diff;
-      link_tuple->lastPackSeqNum = seqno;
-      // ----------------------------------------------------------------------- END
-
       updated = true;
     }
 
@@ -2127,9 +2098,6 @@ RoutingProtocol::LinkSensing (const split2::MessageHeader &msg,
                                 " (symTime being increased to " << now + msg.GetVTime ());
                   link_tuple->symTime = now + msg.GetVTime ();
                   link_tuple->time = link_tuple->symTime + SPLIT2_NEIGHB_HOLD_TIME;
-
-                  link_tuple->DLQ = linkMessage->GetRLQ(); // ----------------------------------- NEW
-
                   updated = true;
                 }
               else
@@ -2151,38 +2119,20 @@ RoutingProtocol::LinkSensing (const split2::MessageHeader &msg,
 
 
   // --------------------------------------------------------------------------- START
-  link_tuple->RLQ = link_tuple->numHelloSupposed / link_tuple->numHelloReceived;
-
-  if (link_tuple->DLQ == SPLIT2_UNDEFINED_LQ)
-  {
-    link_tuple->ETX = SPLIT2_DEFAULT_METRIC;
-  }
-  else
-  {
       // split2 stuff
       StringValue sim_type;
       GlobalValue::GetValueByName("SimulatorImplementationType", sim_type);
       if (sim_type.Get() == StringValue ("ns3::RealtimeSimulatorImpl").Get()){
         Ptr<FdNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<FdNetDevice> ();
-        double C = static_cast<double>(device->GetDataBitRate());
         double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
-        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(senderIface), E);          
+        link_tuple->energy = NewMetric(E);          
       }else{
         Ptr<SimpleWirelessNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<SimpleWirelessNetDevice> ();
-        double C = static_cast<double>(device->GetDataBitRate());
         double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
-        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(senderIface), E);  
+        link_tuple->energy = NewMetric(E);  
       }
-
-      
-
-
-
-
       RoutingTableComputation();
-
       // split2 stuff end
-  }
   // --------------------------------------------------------------------------- END
 
   if (updated)
@@ -2197,9 +2147,9 @@ RoutingProtocol::LinkSensing (const split2::MessageHeader &msg,
       m_events.Track (Simulator::Schedule (DELAY (std::min (link_tuple->time, link_tuple->symTime)),
                                            &RoutingProtocol::LinkTupleTimerExpire, this,
                                            link_tuple->neighborIfaceAddr));
-      // Schedule ETX timer
-      m_events.Track (Simulator::Schedule (SPLIT2_ETX_UPDATE_TIME, // -------------------------------- NEW
-                           &RoutingProtocol::EtxTimerExpire, this, // -------------------------------- NEW
+      // Schedule energy timer
+      m_events.Track (Simulator::Schedule (SPLIT2_ENERGY_UPDATE_TIME, // -------------------------------- NEW
+                           &RoutingProtocol::EnergyTimerExpire, this, // -------------------------------- NEW
                            link_tuple->neighborIfaceAddr)); // -------------------------------- NEW
     }
   NS_LOG_DEBUG ("@" << now.GetSeconds () << ": Split2 node " << m_mainAddress
@@ -2291,7 +2241,7 @@ RoutingProtocol::PopulateTwoHopNeighborSet (const split2::MessageHeader &msg,
                       new_nb2hop_tuple.twoHopNeighborAddr = nb2hop_addr;
                       new_nb2hop_tuple.expirationTime = now + msg.GetVTime ();
 
-                      new_nb2hop_tuple.ETX = linkMessage->ETX; // ---------------------------------------- NEW
+                      new_nb2hop_tuple.energy = linkMessage->energy; // ---------------------------------------- NEW
 
                       AddTwoHopNeighborTuple (new_nb2hop_tuple);
                       // Schedules nb2hop tuple deletion
@@ -2303,7 +2253,7 @@ RoutingProtocol::PopulateTwoHopNeighborSet (const split2::MessageHeader &msg,
                   else
                     {
                       nb2hop_tuple->expirationTime = now + msg.GetVTime ();
-                      nb2hop_tuple->ETX = linkMessage->GetETX(); // ----------------------------------------- NEW
+                      nb2hop_tuple->energy = linkMessage->GetEnergy(); // ----------------------------------------- NEW
                     }
                 }
               else if (neighborType == SPLIT2_NOT_NEIGH)
@@ -2905,7 +2855,7 @@ RoutingProtocol::AssociationTupleTimerExpire (Ipv4Address gatewayAddr, Ipv4Addre
 
 // ----------------------------------------------------------------------------- START
 void
-RoutingProtocol::EtxTimerExpire (Ipv4Address neighborIfaceAddr)
+RoutingProtocol::EnergyTimerExpire (Ipv4Address neighborIfaceAddr)
 {
   LinkTuple *tuple = m_state.FindLinkTuple (neighborIfaceAddr);
   if (tuple == NULL)
@@ -2913,12 +2863,8 @@ RoutingProtocol::EtxTimerExpire (Ipv4Address neighborIfaceAddr)
     return;
   }
 
-  tuple->initPackSeqNum = tuple->lastPackSeqNum;
-  tuple->numHelloReceived = 0;
-  tuple->numHelloSupposed = 0;
-
-  m_events.Track (Simulator::Schedule (SPLIT2_ETX_UPDATE_TIME,
-                                       &RoutingProtocol::EtxTimerExpire, this,
+  m_events.Track (Simulator::Schedule (SPLIT2_ENERGY_UPDATE_TIME,
+                                       &RoutingProtocol::EnergyTimerExpire, this,
                                        neighborIfaceAddr));
 }
 // ----------------------------------------------------------------------------- END
@@ -3019,11 +2965,6 @@ RoutingProtocol::RouteOutput (Ptr<Packet> p, const Ipv4Header &header, Ptr<NetDe
       rtentry->SetOutputDevice (m_ipv4->GetNetDevice (interfaceIdx));
 
   ////////////////////////////////////////////////////////////////////////// split2
-  HistTuple hist;
-  hist.ifaceAddr = rtentry->GetGateway();
-  hist.tos = header.GetTos();
-  m_state.InsertHistTuple(hist, m_histSize);
-
   LinkTuple *link_tuple = m_state.FindLinkTuple (entry2.nextAddr);
 
       // split2 stuff
@@ -3031,14 +2972,12 @@ RoutingProtocol::RouteOutput (Ptr<Packet> p, const Ipv4Header &header, Ptr<NetDe
       GlobalValue::GetValueByName("SimulatorImplementationType", sim_type);
       if (sim_type.Get() == StringValue ("ns3::RealtimeSimulatorImpl").Get()){
         Ptr<FdNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<FdNetDevice> ();
-        double C = static_cast<double>(device->GetDataBitRate());
         double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
-        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(entry2.nextAddr), E);
+        link_tuple->energy = NewMetric(E);
       }else{
         Ptr<SimpleWirelessNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<SimpleWirelessNetDevice> ();
-        double C = static_cast<double>(device->GetDataBitRate());
         double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
-        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(entry2.nextAddr), E);
+        link_tuple->energy = NewMetric(E);
       }
 
 //      RoutingTableComputation();
@@ -3153,25 +3092,18 @@ bool RoutingProtocol::RouteInput  (Ptr<const Packet> p,
                                  << " interface=" << entry2.interface);
 
       ////////////////////////////////////////////////////////////////////////// split2
-      HistTuple hist;
-      hist.ifaceAddr = entry2.nextAddr;
-      hist.tos = header.GetTos();
-      m_state.InsertHistTuple(hist, m_histSize);
-
       LinkTuple *link_tuple = m_state.FindLinkTuple (entry2.nextAddr);
 
       StringValue sim_type;
       GlobalValue::GetValueByName("SimulatorImplementationType", sim_type);
       if (sim_type.Get() == StringValue ("ns3::RealtimeSimulatorImpl").Get()){
         Ptr<FdNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<FdNetDevice> ();
-        double C = static_cast<double>(device->GetDataBitRate());
         double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
-        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(entry2.nextAddr), E);        
+        link_tuple->energy = NewMetric(E);        
       }else{
         Ptr<SimpleWirelessNetDevice> device = GetNetDevice(link_tuple->localIfaceAddr)->GetObject<SimpleWirelessNetDevice> ();
-        double C = static_cast<double>(device->GetDataBitRate());
         double E = m_ipv4->GetObject<Node> ()->GetObject<EnergySourceContainer> ()->Get (0)->GetEnergyFraction ();
-        link_tuple->ETX = NewMetric((C/1000000), link_tuple->RLQ, m_state.GetHistPercentage(entry2.nextAddr), E);
+        link_tuple->energy = NewMetric(E);
       }
 
 //      RoutingTableComputation();
@@ -3379,12 +3311,9 @@ RoutingProtocol::GetNetDevice(const Ipv4Address &addr)
 }
 
 double
-RoutingProtocol::NewMetric(double normalized_datarate, double rlq, double hist_percentage, double energy_percentage)
+RoutingProtocol::NewMetric(double energy_percentage)
 {
-    // double aloha = (normalized_datarate / rlq) + (hist_percentage / (1+energy_percentage));
-    double aloha = 1 + ((hist_percentage / (1+energy_percentage)));
-
-    return aloha;
+    return 1.0/energy_percentage;
 }
 
 

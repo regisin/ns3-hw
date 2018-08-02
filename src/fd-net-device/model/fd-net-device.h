@@ -39,13 +39,6 @@
 #include <utility>
 #include <queue>
 
-// #include <sys/types.h>
-// #include <sys/socket.h>
-// #include <linux/wireless.h>
-// #include <sys/ioctl.h>
-// #include <unistd.h>
-// #include <cstring>
-
 namespace ns3 {
 
 
@@ -197,6 +190,11 @@ public:
 protected:
   virtual void DoDispose (void);
 
+  /**
+   * The file descriptor used for receive/send network traffic (moved to protected so PiNetDevice can access).
+   */
+  int m_fd;
+
 private:
   /**
    * \brief Copy constructor
@@ -259,11 +257,6 @@ private:
    * The MTU associated to the file descriptor technology
    */
   uint16_t m_mtu;
-
-  /**
-   * The file descriptor used for receive/send network traffic.
-   */
-  int m_fd;
 
   /**
    * Reader for the file descriptor.
@@ -446,19 +439,6 @@ private:
    * \see class CallBackTraceSource
    */
   TracedCallback<Ptr<const Packet> > m_promiscSnifferTrace;
-
-
-
-
-///////////////////////////////
- /**
-  * The bitrate from the physical device.
-  * 
-  */
-  int m_bitrate;
-public:
-  int GetDataBitRate (void);
-
 };
 
 } // namespace ns3
