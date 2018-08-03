@@ -28,6 +28,8 @@
 
 #include "creator-utils.h"
 
+using namespace ns3;
+
 int
 main (int argc, char *argv[])
 {
@@ -35,10 +37,13 @@ main (int argc, char *argv[])
   std::string deviceName;
   int c;
   opterr = 0;
-  while ((c = getopt (argc, argv, "p:d:")) != -1)
+  while ((c = getopt (argc, argv, "vp:d:")) != -1)
   {
     switch (c)
       {
+      case 'v':
+        gVerbose = true;
+        break;
       case 'd':
         deviceName = optarg;
         break;
@@ -56,11 +61,13 @@ main (int argc, char *argv[])
   request.u.txpower.value = power;
   if (ioctl(sockfd, SIOCSIWTXPOW, &request) != -1)
   {
-      // LOG("Tx-power is: %d dBm\n" << request.u.txpower.value);
+      LOG("Tx-power is: %d dBm\n" << request.u.txpower.value);
   }else{
+      close(sockfd);
       ABORT_IF (sockfd == -1, "could not perform ioctl", -1);
       return -1;
   }
+  close(sockfd);
   return 0;
 }
 
