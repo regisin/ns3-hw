@@ -40,6 +40,14 @@
 #include <arpa/inet.h>
 #include <net/ethernet.h>
 
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <linux/wireless.h>
+
+#include <cstdio>
+#include <cstring>
+
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("FdNetDevice");
@@ -765,5 +773,79 @@ FdNetDevice::SupportsSendFrom (void) const
 {
   return true;
 }
+
+/////////////////////////////////////////////////////////
+//                  PiNetDevice stuff                  //
+/////////////////////////////////////////////////////////
+std::string
+FdNetDevice::GetDeviceName (void)
+{
+  return m_deviceName;
+}
+
+void
+FdNetDevice::SetDeviceName (std::string deviceName)
+{
+  m_deviceName = deviceName;
+}
+
+int
+FdNetDevice::GetTxPower (void)
+{
+  struct iwreq request;
+  memset(&request, 0, sizeof(request));
+  strncpy(request.ifr_name, m_deviceName.c_str(), IFNAMSIZ);
+
+  if (ioctl(m_fd, SIOCGIWTXPOW, &request) != -1)
+  {
+      NS_LOG_INFO("Tx-power is: " << request.u.txpower.value << " dBm");
+      return request.u.txpower.value;
+  }else{
+      NS_LOG_ERROR("Unable to get tx-power using ioctl");
+      return -1;
+  }
+}
+
+void
+FdNetDevice::SetTxPower (int power)
+{
+  // We use the same technique as the EMU Helper.
+  // Instead of running the entire simulation as sudo,
+  //   we created an auxiliary program to do that (tx-power-setter)
+  pid_t pid = ::fork ();
+  if (pid == 0)
+    {
+      NS_LOG_DEBUG ("Child process");
+
+      //
+      // build a command line argument from the encoded endpoint string that
+      // the socket creation process will use to figure out how to respond to
+      // the (now) parent process.
+      //
+      std::ostringstream argD;
+      argD << "-d" << m_deviceName;
+      std::string argP = "-p " + std::to_string(power);
+      NS_LOG_INFO ("Parameters set to \"" << argD.str () << "," << argP << "\"");
+
+     
+      //
+      // Execute the socket creation process image.
+      //
+      int status = ::execlp (TX_POWER_SETTER,
+                             TX_POWER_SETTER,                            // argv[0] (filename)
+                             argD.str ().c_str (),                           // argv[1] (-p<path?
+                             argP.c_str(),
+                             (char *)NULL);
+
+      //
+      // If the execlp successfully completes, it never returns.  If it returns it failed or the OS is
+      // broken.  In either case, we bail.
+      //
+      NS_FATAL_ERROR ("FdNetDevice::SetTxPower(): Back from execlp(), errno = " << ::strerror (errno) << " execlp() status = " << status);
+    }
+}
+/////////////////////////////////////////////////////////
+//               End PiNetDevice stuff                 //
+/////////////////////////////////////////////////////////
 
 } // namespace ns3

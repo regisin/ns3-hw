@@ -81,6 +81,7 @@ EmuFdNetDeviceHelper::InstallPriv (Ptr<Node> node) const
 {
   Ptr<NetDevice> d = FdNetDeviceHelper::InstallPriv (node);
   Ptr<FdNetDevice> device = d->GetObject<FdNetDevice> ();
+  device->SetDeviceName (m_deviceName);
   SetFileDescriptor (device);
   return device;
 }

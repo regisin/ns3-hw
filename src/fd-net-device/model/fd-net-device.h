@@ -38,6 +38,7 @@
 
 #include <utility>
 #include <queue>
+#include <string>
 
 namespace ns3 {
 
@@ -187,13 +188,43 @@ public:
    */
   virtual void SetIsMulticast (bool multicast);
 
-protected:
-  virtual void DoDispose (void);
+  /////////////////////////////////////////////////////////
+  //                  PiNetDevice stuff                  //
+  /////////////////////////////////////////////////////////
+  /**
+   * Get the name of the interface being used.
+   *
+   */
+  std::string GetDeviceName (void);
 
   /**
-   * The file descriptor used for receive/send network traffic (moved to protected so PiNetDevice can access).
+   * Set the interface name so we can perform other ioctl than just what PiNetDevice does.
+   *
+   * @param deviceName string representing the name of the interface to be used (eth0, wlan0, etc...)
    */
-  int m_fd;
+  void SetDeviceName (std::string deviceName);
+
+  /**
+   * Get the tx-power value from the wireless NIC. Returns in dBm.
+   *
+   */
+  int GetTxPower (void);
+
+  /**
+   * Set the tx-power for the wireless NIC.
+   *
+   * @param power the tx-power in dBm (32 is the maximum for Raspberry Pi 3 Mobel B).
+   */
+  void SetTxPower (int power);
+private:
+  std::string m_deviceName;
+  /////////////////////////////////////////////////////////
+  //               End PiNetDevice stuff                 //
+  /////////////////////////////////////////////////////////
+
+
+protected:
+  virtual void DoDispose (void);
 
 private:
   /**
@@ -257,6 +288,11 @@ private:
    * The MTU associated to the file descriptor technology
    */
   uint16_t m_mtu;
+
+  /**
+   * The file descriptor used for receive/send network traffic (moved to protected so PiNetDevice can access).
+   */
+  int m_fd;
 
   /**
    * Reader for the file descriptor.
@@ -439,6 +475,9 @@ private:
    * \see class CallBackTraceSource
    */
   TracedCallback<Ptr<const Packet> > m_promiscSnifferTrace;
+
+public:
+  double GetDataBitRate() {return 1000000.0;}
 };
 
 } // namespace ns3
