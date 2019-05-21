@@ -36,4 +36,4 @@ TAGS
 build-dir/
 build/
 
-reconfigure.sh
+.vscode
