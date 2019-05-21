@@ -10,6 +10,8 @@ This project was developed using version ns-3.29 of the simulator. This reposito
 
 ## Step 1: the hardware and operating system
 
+![Wiring schematics](node.png)
+
 We tested our project on a Raspberry Pi 3 Model B. The first step is to purchase and configure the hardware and operating system. There are plenty of tutorials of how to connect the wires and configure the OS to enable I2C communication with the device (INA219 in our case), one such tutorial can be found [HERE](https://www.youtube.com/watch?v=BgShCD7xT_A).
 
 As for the operating system we used the official Raspbian OS with no GUI found [HERE](https://www.raspberrypi.org/downloads/raspbian/).
