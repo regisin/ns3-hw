@@ -31,15 +31,14 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("EnergyProfilerINA");
 
-double initialEnergy = 100.0;
+double initialEnergy = 500.0;
 double timeInterval = 1.0;
 
 /// Trace function for remaining energy at node.
 void EnergyStateLogger(Ptr<Ina219Source> s)
 {
-  double ef = s->GetEnergyFraction();
   double ec = s->GetTotalEnergyConsumption();
-  NS_LOG_UNCOND(Simulator::Now().GetSeconds() << "," << ef << "," << ec);
+  NS_LOG_UNCOND(Simulator::Now().GetSeconds() << "," << ec);
   Simulator::Schedule(Seconds(timeInterval), &EnergyStateLogger, s);
 }
 
