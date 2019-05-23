@@ -46,7 +46,7 @@ void EnergyStateLogger(Ptr<Ina219Source> s)
 ////////////////
 int main(int argc, char *argv[])
 {
-  LogComponentEnable("EnergyProfiler",
+  LogComponentEnable("EnergyProfilerINA",
                      LogLevel(LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_INFO));
   GlobalValue::Bind("SimulatorImplementationType", StringValue("ns3::RealtimeSimulatorImpl"));
   GlobalValue::Bind("ChecksumEnabled", BooleanValue(true));
