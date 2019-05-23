@@ -40,7 +40,7 @@ void EnergyStateLogger(Ptr<Ina219Source> s)
   double ef = s->GetEnergyFraction();
   double ec = s->GetTotalEnergyConsumption();
   NS_LOG_UNCOND(Simulator::Now().GetSeconds() << "," << ef << "," << ec);
-  Simulator::Schedule(Seconds(timeInterval), &EnergyStateLogger, s, w);
+  Simulator::Schedule(Seconds(timeInterval), &EnergyStateLogger, s);
 }
 
 ////////////////
@@ -53,8 +53,19 @@ int main(int argc, char *argv[])
 
   Ptr<Ina219Source> ina;
   double ttime = 100.0; // seconds
-  uint32_t PpacketSize = 200; // bytes
+  uint32_t PpacketSize = 1000; // bytes
   std::string dataRate ("1Mb/s");
+  
+  std::string deviceName ("wlan0");
+  std::string ipAddr ("10.1.1.1");
+  std::string dstAddr ("10.1.1.255");
+  std::string netmask ("255.255.255.0");
+  std::string macAddr ("00:00:00:00:00:01");
+
+  Ipv4Address localIp = Ipv4Address (ipAddr.c_str ());
+  Ipv4Address remoteIp = Ipv4Address (dstAddr.c_str ());
+  Mac48AddressValue localMac = Mac48AddressValue (macAddr.c_str ());
+  Ipv4Mask localMask (netmask.c_str ());
 
   // simulation parameters
   /*
@@ -76,7 +87,7 @@ int main(int argc, char *argv[])
   Ptr<EnergySourceContainer> esCont = CreateObject<EnergySourceContainer>();
   ina = CreateObject<Ina219Source>();
 
-  ina->SetInitialCharge(m_charge);
+  ina->SetInitialCharge(initialEnergy);
   esCont->Add(ina);
   ina->SetNode(node);
   node->AggregateObject(esCont);
@@ -109,14 +120,14 @@ int main(int argc, char *argv[])
   onoff.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1]"));
   onoff.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
   onoff.SetAttribute("DataRate", DataRateValue(dataRate));
-  onoff.SetAttribute("PacketSize", UintegerValue(packetSize));
+  onoff.SetAttribute("PacketSize", UintegerValue(PpacketSize));
   ApplicationContainer clientApps = onoff.Install(node);
   //////////////////////////////////////////////////////////////////////////////////////////////
 
   clientApps.Start(Seconds(0.01));
   clientApps.Stop(Seconds(ttime - 0.01));
 
-  Simulator::Schedule (Seconds (timeInterval), &EnergyStateLogger, basicSourcePtr, wifiRadioPtr);
+  Simulator::Schedule (Seconds (timeInterval), &EnergyStateLogger, ina);
 
   /** simulation setup **/
   NS_LOG_UNCOND ("time,energy_fraction,total_energy_consumption");
