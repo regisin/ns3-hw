@@ -124,6 +124,13 @@ public:
    */
   virtual void UpdateEnergySource (void);
 
+  /**
+   * \return Total energy drained by the node.
+   *
+   * This function returns the total amount of energy (J) drained by the entire node.
+   */
+  double GetTotalEnergyConsumption (void);
+
 
 
   // ina stuff
@@ -162,6 +169,8 @@ private:
   TracedValue<double> m_tempVoltage;
   TracedValue<double> m_tempShuntVoltage;
   TracedValue<double> m_tempSupplyVoltage;
+
+  TracedValue<double> m_totalEnergyConsumption;
 
   Time m_lastUpdateTime;                  // last update time
   Time m_updateInterval;

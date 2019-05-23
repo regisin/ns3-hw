@@ -91,6 +91,10 @@ Ina219Source::GetTypeId (void)
                     "Last supply voltage calculated from last voltage reading of the sensor (V).",
                     MakeTraceSourceAccessor (&Ina219Source::m_tempSupplyVoltage),
                     "ns3::TracedValueCallback::Double")
+    .AddTraceSource ("TotalEnergyConsumption",
+                    "Total energy consumed in Joules (J).",
+                    MakeTraceSourceAccessor (&Ina219Source::m_totalEnergyConsumption),
+                    "ns3::TracedValueCallback::Double")
   ;
   return tid;
 }
@@ -99,6 +103,7 @@ Ina219Source::Ina219Source ()
 {
 
   NS_LOG_FUNCTION (this);
+  m_totalEnergyConsumption = 0.0;
   m_lastUpdateTime = Seconds (0.0);
   ina = new INA219(0.1, 3.2);
   ina->configure(RANGE_16V, GAIN_8_320MV, ADC_12BIT, ADC_12BIT);
@@ -178,6 +183,13 @@ Ina219Source::GetSupplyVoltage (void) const
 }
 
 double
+Ina219Source::GetTotalEnergyConsumption (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_totalEnergyConsumption;
+}
+
+double
 Ina219Source::GetInitialEnergy (void) const
 {
   NS_LOG_FUNCTION (this);
@@ -240,6 +252,8 @@ Ina219Source::UpdateEnergySource (void)
     {
       m_currentChargeCoulomb -= coulombToDecrease;
     }
+
+  m_totalEnergyConsumption = m_totalEnergyConsumption + (coulombToDecrease * m_tempVoltage);
 
   NotifyEnergyDrained();
   m_lastUpdateTime = Simulator::Now ();
