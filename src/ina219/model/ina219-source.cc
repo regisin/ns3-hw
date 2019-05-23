@@ -183,7 +183,7 @@ Ina219Source::GetSupplyVoltage (void) const
 }
 
 double
-Ina219Source::GetTotalEnergyConsumption (void) const
+Ina219Source::GetTotalEnergyConsumption (void)
 {
   NS_LOG_FUNCTION (this);
   return m_totalEnergyConsumption;
