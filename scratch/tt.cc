@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
   std::string netmask ("255.255.255.0");
   std::string macAddr ("00:00:00:00:00:01");
 
-  Ipv4Address localIp = Ipv4Address (ipAddr.c_str ());
-  Ipv4Address remoteIp = Ipv4Address (dstAddr.c_str ());
+  // Ipv4Address localIp = Ipv4Address (ipAddr.c_str ());
+  // Ipv4Address remoteIp = Ipv4Address (dstAddr.c_str ());
   Mac48AddressValue localMac = Mac48AddressValue (macAddr.c_str ());
   Ipv4Mask localMask (netmask.c_str ());
 
