@@ -34,13 +34,19 @@ NS_LOG_COMPONENT_DEFINE("EnergyProfilerINA");
 double initialEnergy = 500.0;
 double timeInterval = 1.0;
 
-/// Trace function for remaining energy at node.
-void EnergyStateLogger(Ptr<Ina219Source> s)
+/// Trace function for energy at node.
+void
+TraceConsumption (double oldValue, double newValue)
 {
-  double ec = s->GetTotalEnergyConsumption();
-  NS_LOG_UNCOND(Simulator::Now().GetSeconds() << "," << ec);
-  Simulator::Schedule(Seconds(timeInterval), &EnergyStateLogger, s);
+  NS_LOG_UNCOND (Simulator::Now ().GetSeconds () << "," << oldValue << "," << newValue);
 }
+
+// void EnergyStateLogger(Ptr<Ina219Source> s)
+// {
+//   double ec = s->GetTotalEnergyConsumption();
+//   NS_LOG_UNCOND(Simulator::Now().GetSeconds() << "," << ec);
+//   Simulator::Schedule(Seconds(timeInterval), &EnergyStateLogger, s);
+// }
 
 ////////////////
 int main(int argc, char *argv[])
@@ -126,7 +132,8 @@ int main(int argc, char *argv[])
   clientApps.Start(Seconds(0.01));
   clientApps.Stop(Seconds(ttime - 0.01));
 
-  Simulator::Schedule (Seconds (timeInterval), &EnergyStateLogger, ina);
+  // Simulator::Schedule (Seconds (timeInterval), &EnergyStateLogger, ina);
+  ina->TraceConnectWithoutContext("TotalEnergyConsumption", MakeCallback(&TraceConsumption));
 
   /** simulation setup **/
   NS_LOG_UNCOND ("time,energy_fraction,total_energy_consumption");
