@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
   ina = CreateObject<Ina219Source>();
 
   ina->SetInitialCharge(initialEnergy);
+  ina->SetUpdateInterval(MilliSeconds(100.0));
   esCont->Add(ina);
   ina->SetNode(node);
   node->AggregateObject(esCont);
